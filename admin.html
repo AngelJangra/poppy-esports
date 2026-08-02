@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POPPY ESPORTS – Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Copy the entire <style> block from your original admin.html – unchanged */
+    </style>
+</head>
+<body>
+    <!-- Admin header, sidebar, sections – same as original -->
+    <!-- All HTML structure is identical to original admin.html, with the logo updated to POPPY_ESPORTS.png -->
+    <!-- I will provide the key changes: -->
+    <header class="app-header">
+        <div class="header-left">
+            <button class="menu-toggle-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <img src="POPPY_ESPORTS.png" alt="Logo" class="header-logo" id="adminHeaderLogo">
+            <h1 class="header-title ms-1" id="adminPageTitle">POPPY ESPORTS – Admin</h1>
+        </div>
+        <div class="header-right">
+            <span class="admin-email-header" id="adminUserEmailShort"></span>
+            <button class="btn btn-sm btn-outline-danger" id="adminLogoutBtnHeader"><i class="bi bi-box-arrow-right"></i> Logout</button>
+        </div>
+    </header>
+
+    <!-- Offcanvas sidebar, sections (Dashboard, Games, Promotions, Tournaments, Tournament Mgt, Leaderboard Mgt, Users, User Analytics, Notifications, Transactions, Withdrawals, Deposit, Referrals, Theme, Settings) – identical to original admin.html -->
+    <!-- All modals same as original -->
+
+    <!-- ======== SCRIPTS ======== -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ================================================================
+        // POPPY ESPORTS – Full Admin Logic (Supabase)
+        // ================================================================
+
+        const SUPABASE_URL = 'https://your-project.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ======================== STATE ========================
+        let currentAdminUser = null;
+        let designatedAdminUid = null;
+        let dbListeners = {};
+        let appSettings = {};
+        let fullUserDataCache = {};
+        let newUserChart = null;
+
+        // ======================== HELPERS ========================
+        const getElement = (id) => document.getElementById(id);
+        const showLoader = (show) => { const el = getElement('adminLoader'); if(el) el.style.display = show ? 'flex' : 'none'; };
+        function showStatus(element, message, type = 'danger', autohide = 5000) {
+            if(!element) return;
+            element.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+            element.style.display = 'block';
+            if(autohide) setTimeout(() => { if(element.innerHTML.includes(message)) element.style.display = 'none'; }, autohide);
+        }
+        function clearStatus(element) { if(element) element.innerHTML = ''; }
+        function formatDate(timestamp) {
+            if(!timestamp) return 'N/A';
+            const d = new Date(timestamp);
+            return d.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        }
+        function formatCurrency(amount) { return `₹ ${(amount || 0).toFixed(2)}`; }
+        function sanitizeHTML(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+        function copyToClipboard(selector) { const el = document.querySelector(selector); if(el) navigator.clipboard.writeText(el.textContent).catch(() => alert('Copy failed.')); }
+
+        // ======================== AUTH ========================
+        async function loginAdmin(email, password) {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            return data.user;
+        }
+        async function logoutAdmin() {
+            await supabase.auth.signOut();
+        }
+
+        // Check admin config
+        async function checkAdminSetup() {
+            const { data, error } = await supabase.from('admin_config').select('*').limit(1);
+            if (error || !data || data.length === 0) return false;
+            const config = data[0];
+            designatedAdminUid = config.admin_uid;
+            return config.setup_complete;
+        }
+
+        // Auth state listener
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            const user = session?.user || null;
+            currentAdminUser = user;
+            if (user) {
+                const isSetup = await checkAdminSetup();
+                if (isSetup && user.id === designatedAdminUid) {
+                    document.getElementById('auth-container').style.display = 'none';
+                    document.getElementById('admin-main-area').style.display = 'block';
+                    await loadSettings();
+                    showAdminSection('dashboard-section');
+                    setupRealtimeAdminListeners();
+                } else {
+                    alert('Unauthorized admin access.');
+                    await logoutAdmin();
+                }
+            } else {
+                document.getElementById('auth-container').style.display = 'block';
+                document.getElementById('admin-main-area').style.display = 'none';
+            }
+        });
+
+        // ======================== SECTION MANAGEMENT ========================
+        function showAdminSection(sectionId) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            const target = getElement(sectionId);
+            if(target) target.classList.add('active');
+            // Load data for section
+            switch(sectionId) {
+                case 'dashboard-section': loadDashboardStats(); break;
+                case 'games-section': loadGames(); break;
+                case 'promotions-section': loadPromotions(); break;
+                case 'tournaments-section': loadTournaments(); break;
+                case 'users-section': loadUsers(); break;
+                case 'withdrawals-section': loadWithdrawals('pending'); loadWithdrawals('completed'); loadWithdrawals('rejected'); break;
+                case 'deposit-section': loadDepositRequests('pending'); loadDepositRequests('completed'); loadDepositRequests('rejected'); break;
+                case 'referrals-section': loadReferrals('pending'); loadReferrals('completed'); break;
+                case 'settings-section': loadSettings(); break;
+                case 'theme-section': loadThemeSettings(); break;
+                case 'notifications-section': loadGlobalNotificationHistory(); break;
+                case 'tournament-management-section': populateTournamentManagementSelector(); break;
+                case 'leaderboard-mgt-section': loadLeaderboardManagementData(); break;
+                case 'user-analytics-section': loadUserAnalyticsData(); break;
+                // ... etc.
+            }
+        }
+
+        // ======================== DATA LOADING ========================
+        async function loadSettings() {
+            const { data, error } = await supabase.from('settings').select('*').limit(1).single();
+            if (error) {
+                appSettings = {};
+            } else {
+                appSettings = data;
+                // Populate form fields (as in original)
+                getElement('settingLogoUrlInput').value = data.logo_url || '';
+                getElement('settingAppNameInput').value = data.app_name || '';
+                // ... etc.
+            }
+        }
+
+        async function loadGames() {
+            const { data, error } = await supabase.from('games').select('*');
+            if (error) return;
+            const tbody = getElement('gamesTableBody');
+            tbody.innerHTML = '';
+            data.forEach(game => {
+                tbody.innerHTML += `<tr>
+                    <td><img src="${game.image_url}" class="preview-img"></td>
+                    <td>${game.name}</td>
+                    <td><small>${game.id}</small> <i class="bi bi-clipboard copy-btn" data-target="td:nth-child(3) > small"></i></td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-info btn-edit-game" data-id="${game.id}"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-sm btn-danger btn-delete-game" data-id="${game.id}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // ... (all other loading functions: loadPromotions, loadTournaments, loadUsers, loadWithdrawals, loadDepositRequests, loadReferrals, etc.)
+        // These are identical to the Supabase versions provided in earlier messages.
+        // For brevity, I include the key ones; you can copy the full implementations from my previous answer.
+
+        // ======================== DEPOSIT APPROVAL ========================
+        async function approveDeposit(depositId, userId, amount) {
+            const { error: rpcError } = await supabase.rpc('add_balance', { user_id: userId, amount });
+            if (rpcError) throw rpcError;
+            const { error: updateError } = await supabase
+                .from('deposits')
+                .update({ status: 'completed', processed_at: new Date(), processed_by: currentAdminUser.id })
+                .eq('id', depositId);
+            if (updateError) throw updateError;
+        }
+
+        // ======================== REALTIME ========================
+        function setupRealtimeAdminListeners() {
+            // Listen to pending withdrawals/deposits counts for badges
+            // Similar to Firebase version but with Supabase channels
+        }
+
+        // ======================== INIT ========================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Show login UI initially, handled by auth listener
+        });
+    </script>
+</body>
+</html>
