@@ -57,15 +57,19 @@
 ---
 
 ## 📦 **Repository Structure**
-poppy-esports/
+POPPY_ESPORTS/
+├── POPPY_ESPORTS.png          # Your logo (you place this)
+├── index.html                 # Landing page
+├── user.html                  # User application
+├── admin.html                 # Admin panel
 ├── api/
-│ └── telegram-webhook.js # Serverless function for Telegram alerts
-├── index.html # Landing page (root)
-├── user.html # User application
-├── admin.html # Admin panel
-├── package.json # Dependencies for the webhook
-├── vercel.json # Vercel routing configuration
-└── README.md # You are here
+│   └── telegram-webhook.js    # Serverless function
+├── package.json               # Dependencies
+├── vercel.json                # Routing config
+├── schema.sql                 # Supabase database schema
+├── README.md                  # Full project documentation
+├── LICENSE                    # MIT License
+└── .gitignore                 # Ignore files
 
 
 ---
