@@ -1,0 +1,9 @@
+{
+  "name": "poppy-esports-webhook",
+  "version": "1.0.0",
+  "description": "Telegram webhook for POPPY ESPORTS deposits",
+  "main": "api/telegram-webhook.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
