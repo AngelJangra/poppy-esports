@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POPPY ESPORTS | Next‑Gen Gaming</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --primary: #00aaff;
+            --secondary: #bd00ff;
+            --success: #00ff88;
+            --accent-pink: #ff00c8;
+            --bg: #030303;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            overflow-x: hidden;
+            background-image: url('https://i.ibb.co/Qj8BBR2K/IMG-20251006-WA0001.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        .overlay {
+            background: linear-gradient(180deg, rgba(3, 3, 3, 0.9) 0%, rgba(3, 3, 3, 0.98) 100%);
+            min-height: 100vh;
+        }
+        .shimmer-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-25deg);
+            animation: shimmerEffect 3s infinite;
+        }
+        @keyframes shimmerEffect {
+            0% { left: -150%; }
+            30% { left: 150%; }
+            100% { left: 150%; }
+        }
+        .logo-wrap { padding: 50px 0 20px; display: flex; justify-content: center; }
+        .logo-main {
+            width: 90px; height: 90px; border-radius: 50%;
+            border: 3px solid var(--primary);
+            transition: 0.5s var(--elastic);
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 170, 255, 0.2);
+        }
+        .logo-main:hover { transform: translateY(-15px) scale(1.1); box-shadow: 0 30px 60px rgba(0, 170, 255, 0.5); }
+        .hero { padding: 20px; text-align: center; }
+        .hero h1 {
+            font-weight: 800; font-size: clamp(2.2rem, 8vw, 3rem);
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .phone-case {
+            width: 250px; height: 520px; margin: 40px auto;
+            background: #000; border: 10px solid #1a1a1a; border-radius: 40px;
+            overflow: hidden; transition: 0.6s var(--elastic);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        }
+        .phone-case:hover { transform: translateY(-20px) rotateX(5deg); box-shadow: 0 40px 80px rgba(0, 170, 255, 0.2); }
+        .slider-wrap { display: flex; height: 100%; transition: 1s cubic-bezier(0.8, 0, 0.2, 1); }
+        .slider-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-box { display: flex; flex-direction: column; gap: 15px; align-items: center; padding: 0 25px; }
+        .btn-premium {
+            width: 100%; max-width: 340px; padding: 18px; border-radius: 18px;
+            text-decoration: none; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; display: flex; align-items: center; justify-content: center;
+            gap: 12px; transition: 0.4s var(--elastic); border: none;
+        }
+        .btn-premium:hover { transform: translateY(-12px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .btn-dl { background: linear-gradient(45deg, var(--primary), #0051ff); color: #fff; box-shadow: 0 10px 20px rgba(0, 170, 255, 0.3); }
+        .btn-site { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+        .btn-dev {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            transition: all 0.5s ease;
+        }
+        .btn-dev.alt-style {
+            border-color: var(--accent-pink);
+            color: var(--accent-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 200, 0.2);
+        }
+        .stats-bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 50px 20px; }
+        .stat-card {
+            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.05);
+            padding: 30px 15px; border-radius: 24px; transition: 0.5s var(--elastic);
+            text-align: left; backdrop-filter: blur(10px); cursor: pointer;
+        }
+        .stat-card:hover { transform: translateY(-15px); background: rgba(255, 255, 255, 0.08); }
+        .stat-card h2 { font-size: 2rem; font-weight: 800; margin-bottom: 5px; transition: 0.3s; }
+        .stat-dl:hover h2 { color: var(--primary); }
+        .stat-user:hover h2 { color: var(--secondary); }
+        .stat-likes:hover h2 { color: var(--success); }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; padding: 0 20px 60px; }
+        .feat-card {
+            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.03);
+            padding: 25px 15px; border-radius: 22px; transition: 0.4s var(--elastic);
+            text-align: center; cursor: pointer;
+        }
+        .feat-card:hover { transform: translateY(-12px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0, 170, 255, 0.15); }
+        .feat-card i { font-size: 2rem; color: var(--primary); margin-bottom: 12px; display: inline-block; }
+        .feat-card h4 { font-size: 0.85rem; font-weight: 700; color: #fff; }
+        #featureModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: none; align-items: center;
+            justify-content: center; z-index: 9999; padding: 20px; backdrop-filter: blur(10px);
+        }
+        .modal-content {
+            background: #111; border: 2px solid var(--primary); padding: 30px;
+            border-radius: 25px; max-width: 400px; text-align: center;
+            animation: modalIn 0.4s var(--elastic);
+        }
+        @keyframes modalIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-content h3 { color: var(--primary); margin-bottom: 15px; font-weight: 800; }
+        .modal-content p { color: #ccc; font-size: 0.95rem; line-height: 1.6; }
+        .close-btn { margin-top: 20px; padding: 10px 25px; background: var(--primary); color: #000; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        footer { padding: 60px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.4); }
+        .motivation-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            display: block;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            animation: pulseText 2s infinite ease-in-out;
+        }
+        @keyframes pulseText {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        .footer-copy { color: #444; font-size: 0.75rem; font-weight: 700; margin-top: 20px; display: block; }
+        .reveal { opacity: 0; transform: translateY(30px); transition: 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <header class="logo-wrap reveal active">
+            <img src="POPPY_ESPORTS.png" alt="POPPY ESPORTS Logo" class="logo-main">
+        </header>
+        <main>
+            <section class="hero reveal active">
+                <h1>POPPY ESPORTS</h1>
+                <p style="color: #666; font-weight: 500;">Start Your Battle Today.</p>
+                <div class="phone-case reveal" id="phoneMockup">
+                    <div class="slider-wrap" id="slider">
+                        <img src="https://i.ibb.co/gMJk4QW5/IMG-20250830-033719.png">
+                        <img src="https://i.ibb.co/jP27yjpd/IMG-20250830-033709.png">
+                        <img src="https://i.ibb.co/0y0jYRgS/IMG-20250830-033700.png">
+                        <img src="https://i.ibb.co/sd8zfQtj/IMG-20250830-033647.png">
+                    </div>
+                </div>
+                <div class="btn-box">
+                    <a href="https://github.com/seppexff-sudo/esports/raw/refs/heads/main/E-Sports_1.0.0.apk" class="btn-premium btn-dl shimmer-btn">
+                        <i class="bi bi-cloud-arrow-down-fill"></i> Download APK
+                    </a>
+                    <a href="https://drxbattele.gamer.gd/?i=1" class="btn-premium btn-site shimmer-btn">
+                        <i class="bi bi-globe2"></i> Official Website
+                    </a>
+                    <a href="https://t.me/ai_dev_studioo" class="btn-premium btn-dev shimmer-btn" id="dynamicDevBtn">
+                        <i class="bi bi-telegram"></i> <span>Contact Developer</span>
+                    </a>
+                </div>
+            </section>
+            <div class="stats-bento">
+                <div class="stat-card stat-dl reveal" style="grid-column: span 2;">
+                    <i class="bi bi-download" style="color: var(--primary);"></i>
+                    <h2 class="counter" data-target="5858">0</h2>
+                    <p>Total Community Downloads</p>
+                </div>
+                <div class="stat-card stat-user reveal">
+                    <i class="bi bi-people" style="color: var(--secondary);"></i>
+                    <h2 class="counter" data-target="5213">0</h2>
+                    <p>Active Players</p>
+                </div>
+                <div class="stat-card stat-likes reveal">
+                    <i class="bi bi-heart" style="color: var(--success);"></i>
+                    <h2 class="counter" data-target="5565">0</h2>
+                    <p>Trust Likes</p>
+                </div>
+            </div>
+            <section class="reveal">
+                <h3 style="margin: 0 25px 25px; color: var(--primary); letter-spacing: 1px; font-weight: 800;">CORE FEATURES</h3>
+                <div class="features-grid">
+                    <div class="feat-card" onclick="showDetail('Anti-Cheat', 'Advanced military-grade shield to block all types of hacks and ensures 100% fair play.')">
+                        <i class="bi bi-shield-check"></i>
+                        <h4>ANTI-CHEAT</h4>
+                    </div>
+                    <div class="feat-card" onclick="showDetail('Fast Payout', 'Withdraw your tournament winnings instantly to your UPI. 5-minute processing time.')">
+                        <i class="bi bi-lightning-charge"></i>
+                        <h4>FAST PAYOUT</h4>
+                    </div>
+                    <div class="feat-card" onclick="showDetail('24/7 Support', 'Dedicated support team ready to help you on Telegram and App chat at any time.')">
+                        <i class="bi bi-headset"></i>
+                        <h4>24/7 SUPPORT</h4>
+                    </div>
+                    <div class="feat-card" onclick="showDetail('Refer & Earn', 'Invite your squad and earn real cash rewards for every friend who joins the arena!')">
+                        <i class="bi bi-gift"></i>
+                        <h4>REFER & EARN</h4>
+                    </div>
+                    <div class="feat-card" onclick="showDetail('Leaderboard', 'Rise through the ranks and prove you are the king of the arena. Live tracking available.')">
+                        <i class="bi bi-trophy"></i>
+                        <h4>LEADERBOARD</h4>
+                    </div>
+                    <div class="feat-card" onclick="showDetail('Free Entry', 'Daily practice matches with zero entry fee. Show your skills for free!')">
+                        <i class="bi bi-controller"></i>
+                        <h4>FREE ENTRY</h4>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <div id="featureModal">
+            <div class="modal-content">
+                <h3 id="modalTitle">Feature Name</h3>
+                <p id="modalDesc">Explanation goes here...</p>
+                <button class="close-btn" onclick="closeDetail()">CLOSE</button>
+            </div>
+        </div>
+        <footer>
+            <span class="motivation-text">Download app and enjoy the adventure</span>
+            <span class="footer-copy">POPPY ESPORTS | &copy; 2025</span>
+        </footer>
+    </div>
+    <script>
+        function showDetail(title, desc) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalDesc').innerText = desc;
+            document.getElementById('featureModal').style.display = 'flex';
+        }
+        function closeDetail() {
+            document.getElementById('featureModal').style.display = 'none';
+        }
+        const slider = document.getElementById('slider');
+        let idx = 0;
+        setInterval(() => {
+            idx = (idx + 1) % 4;
+            slider.style.transform = `translateX(-${idx * 100}%)`;
+        }, 3000);
+        const devBtn = document.getElementById('dynamicDevBtn');
+        const devBtnText = devBtn.querySelector('span');
+        const labels = ["Contact Developer", "Want your own app?"];
+        let labelIdx = 0;
+        setInterval(() => {
+            labelIdx = (labelIdx + 1) % labels.length;
+            devBtnText.style.opacity = 0;
+            setTimeout(() => {
+                devBtnText.innerText = labels[labelIdx];
+                if(labelIdx === 1) devBtn.classList.add('alt-style');
+                else devBtn.classList.remove('alt-style');
+                devBtnText.style.opacity = 1;
+            }, 300);
+        }, 2500);
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = +el.getAttribute('data-target');
+                    let current = 0;
+                    const increment = target / 50;
+                    const update = () => {
+                        if (current < target) {
+                            current += increment;
+                            el.innerText = Math.ceil(current);
+                            requestAnimationFrame(update);
+                        } else el.innerText = target;
+                    };
+                    update();
+                    counterObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 1 });
+        document.querySelectorAll('.counter').forEach(c => counterObserver.observe(c));
+    </script>
+</body>
+</html>
