@@ -1,713 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>POPPY ESPORTS</title>
-  <!-- Include all CSS/icon/font libraries -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-
-  <!-- ============ STYLES ============ -->
-  <style>
-    /* Copy the entire <style> block from your original user.html – it's identical.
-       I will not re‑paste the 400+ lines to keep response concise.
-       You MUST include the full styles from your original user.html. */
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>POPPY ESPORTS – Tournaments</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #0b0b1a; color: #fff; font-family: 'Poppins', sans-serif; padding: 20px; }
+        .tournament-card { background: #1a1a2e; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a2a4a; transition: 0.3s; }
+        .tournament-card:hover { border-color: #00aaff; box-shadow: 0 0 20px rgba(0,170,255,0.2); }
+        .tournament-card h3 { color: #00aaff; }
+        .game-icon { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; margin-right: 12px; }
+        .btn-join { background: linear-gradient(45deg, #00aaff, #0051ff); border: none; padding: 10px 25px; border-radius: 30px; color: #fff; font-weight: 600; transition: 0.3s; }
+        .btn-join:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-join:hover:not(:disabled) { transform: scale(1.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; flex-wrap: wrap; }
+        .user-info { color: #aaa; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .logout-btn { background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 5px 15px; border-radius: 20px; cursor: pointer; }
+        .section-title { color: #fff; margin-bottom: 20px; }
+        .no-tournaments { color: #666; text-align: center; padding: 40px; }
+        .referral-banner { background: #1a1a2e; padding: 15px; border-radius: 12px; border-left: 4px solid #00ff88; margin-bottom: 20px; }
+        .referral-banner strong { color: #00ff88; }
+        .slots-remaining { background: #2a2a4a; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; }
+        .slots-full { color: #ff4444; }
+        .ff-verified-badge { background: #1a1a2e; padding: 8px 16px; border-radius: 20px; border-left: 3px solid #00ff88; display: inline-block; margin-bottom: 10px; }
+    </style>
 </head>
 <body>
-
-  <!-- ======== SPLASH SCREEN ======== -->
-  <div id="splash-screen">
-    <div class="splash-logo-container">
-      <img src="POPPY_ESPORTS.png" alt="POPPY ESPORTS Logo" class="splash-logo" id="splashLogoEl">
-      <h1 class="splash-title">POPPY ESPORTS</h1>
+    <div class="header">
+        <div>
+            <img src="POPPY_ESPORTS.png" alt="Logo" style="height: 40px; border-radius: 50%;">
+            <span style="font-weight: 700; margin-left: 10px;">POPPY ESPORTS</span>
+        </div>
+        <div class="user-info">
+            <span id="userNameDisplay">User</span> | <span id="userBalance">₹0</span>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
     </div>
-  </div>
 
-  <!-- ======== HEADER ======== -->
-  <header class="app-header">
-    <div class="header-left">
-      <button class="header-back-button" id="headerBackBtnEl"><i class="bi bi-arrow-left"></i></button>
-      <img src="POPPY_ESPORTS.png" alt="Logo" class="header-logo" id="appLogoEl">
-      <div class="header-title" id="headerTitleContainerEl">POPPY ESPORTS <span id="headerUserGreetingEl">Guest</span></div>
-      <div class="header-game-title" id="headerGameTitleEl">Game Title</div>
+    <!-- Verified UID & Clan Info -->
+    <div class="ff-verified-badge" id="ffBadge">
+        <i class="bi bi-check-circle-fill" style="color: #00ff88;"></i>
+        Verified UID: <strong id="ffUidDisplay">----</strong> | Clan: <span id="ffClanDisplay">----</span>
     </div>
-    <div class="header-right">
-      <button class="notification-icon" id="notificationBtnEl"><i class="bi bi-bell-fill"></i><span class="notification-badge" style="display: none;"></span></button>
-      <button class="wallet-chip" id="headerWalletChipEl" style="display: none;"><i class="bi bi-wallet-fill"></i> ₹ <span id="headerChipBalanceEl">0</span></button>
+
+    <!-- Referral Banner -->
+    <div class="referral-banner">
+        <i class="bi bi-gift-fill" style="color: #00ff88;"></i>
+        Refer & Earn: <strong>₹10</strong> per referral + <strong>10%</strong> of their spending! Your code: <strong id="referralCodeDisplay">----</strong>
     </div>
-  </header>
 
-  <!-- ======== MAIN CONTENT ======== -->
-  <main class="main-content">
-    <!-- ===== LOGIN SECTION ===== -->
-    <section id="login-section" class="section">
-      <div class="container" style="max-width: 450px;">
-        <div class="card shadow-sm custom-card">
-          <div class="card-body p-4">
-            <!-- Login Form -->
-            <form id="emailLoginForm">
-              <h2 class="card-title text-center mb-4">Login</h2>
-              <div class="mb-3"> <label for="loginEmailInputEl" class="form-label">Email or Phone</label> <input type="text" class="form-control" id="loginEmailInputEl" placeholder="Enter your email or phone" required> </div>
-              <div class="mb-3"> <label for="loginPasswordInputEl" class="form-label">Password</label> <input type="password" class="form-control" id="loginPasswordInputEl" placeholder="Password" required> </div>
-              <div id="loginStatusMessageEl" class="alert mt-3" style="display: none;"></div>
-              <div class="d-grid gap-2 mb-3"> <button type="button" class="btn btn-custom btn-custom-primary" id="loginEmailBtnEl">Login</button> <button type="button" class="btn-custom-link btn-sm p-0 text-center d-block" id="showSignupToggleBtnEl">Need an account? Sign Up</button> <a href="#" id="forgotPasswordLinkEl" class="text-center small mt-2 d-block" style="color: var(--text-secondary);">Forgot Password?</a> </div>
-              <div class="form-divider"><span>OR</span></div>
-              <div class="d-grid gap-2">
-                <button type="button" class="btn btn-custom btn-custom-secondary" id="googleSignInBtnEl"><i class="bi bi-google"></i> Sign in with Google</button>
-              </div>
-            </form>
-            <!-- Signup Form -->
-            <form id="emailSignupForm" style="display: none;">
-              <h2 class="card-title text-center mb-4">Sign Up</h2>
-              <div class="mb-3"> <label for="signupNameInputEl" class="form-label">Name</label> <input type="text" class="form-control" id="signupNameInputEl" placeholder="Enter your name" required> </div>
-              <div class="mb-3"> <label for="signupEmailInputEl" class="form-label">Email</label> <input type="email" class="form-control" id="signupEmailInputEl" placeholder="name@example.com" required> </div>
-              <div class="mb-3"> <label for="signupPhoneInputEl" class="form-label">Phone Number</label> <input type="tel" class="form-control" id="signupPhoneInputEl" placeholder="Enter your phone number" required> </div>
-              <div class="mb-3"> <label for="signupPasswordInputEl" class="form-label">Password (min 6 chars)</label> <input type="password" class="form-control" id="signupPasswordInputEl" placeholder="Password" required minlength="6"> </div>
-              <div class="mb-3"> <label for="signupConfirmPasswordInputEl" class="form-label">Confirm Password</label> <input type="password" class="form-control" id="signupConfirmPasswordInputEl" placeholder="Confirm Password" required minlength="6"> </div>
-              <div class="mb-3"> <label for="signupReferralCodeInputEl" class="form-label">Referral Code (Optional)</label> <input type="text" class="form-control" id="signupReferralCodeInputEl" placeholder="Enter referral code"> </div>
-              <div id="signupStatusMessageEl" class="alert mt-3" style="display: none;"></div>
-              <div class="d-grid gap-2 mb-3"> <button type="button" class="btn btn-custom btn-custom-accent" id="signupEmailBtnEl">Sign Up</button> <button type="button" class="btn-custom-link btn-sm p-0 text-center d-block" id="showLoginToggleBtnEl">Already have account? Login</button> </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
+    <h2 class="section-title">🔥 Latest Incoming Tournaments</h2>
+    <div id="tournamentsContainer"></div>
 
-    <!-- ===== HOME SECTION ===== -->
-    <section id="home-section" class="section">
-      <div id="announcementBarEl" style="display: none;">
-        <div class="icon"><i class="bi bi-megaphone-fill"></i></div>
-        <div class="text" id="announcementTextEl"></div>
-      </div>
-      <div class="swiper-container" id="promotionSliderEl">
-        <div class="swiper-wrapper placeholder-glow">
-          <div class="swiper-slide"><span class="placeholder" style="display: block; width: 100%; height: 100%; border-radius: 10px;"></span></div>
-        </div>
-        <div class="swiper-pagination"></div>
-      </div>
-      <div class="contest-status-nav" id="contestStatusNavEl">
-        <a href="#" class="contest-status-btn" data-status="upcoming"><i class="bi bi-calendar-event-fill"></i><span>Upcoming</span></a>
-        <a href="#" class="contest-status-btn" data-status="ongoing"><i class="bi bi-play-circle-fill"></i><span>Ongoing</span></a>
-        <a href="#" class="contest-status-btn" data-status="completed"><i class="bi bi-trophy-fill"></i><span>Completed</span></a>
-      </div>
-      <h2 class="section-title">Esport Games</h2>
-      <div class="row g-3 mb-4" id="gamesListEl"></div>
-    </section>
+    <!-- ======== SCRIPTS ======== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ================================================================
+        // USER APP – Full tournament listing with slots & join logic
+        // ================================================================
 
-    <!-- ===== MY CONTESTS ===== -->
-    <section id="my-contests-section" class="section">
-      <h2 class="section-title">My Contests</h2>
-      <div id="myContestsListEl"></div>
-    </section>
+        const SUPABASE_URL = 'https://your-project.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <!-- ===== TOURNAMENTS ===== -->
-    <section id="tournaments-section" class="section">
-      <div class="tournament-tabs"> <button class="tab-item active" data-status="upcoming"><i class="bi bi-calendar-event-fill"></i> Upcoming</button> <button class="tab-item" data-status="ongoing"><i class="bi bi-play-circle-fill"></i> Ongoing</button> <button class="tab-item" data-status="completed"><i class="bi bi-trophy-fill"></i> Results</button> </div>
-      <div id="tournamentsListContainerEl" class="mt-3"></div>
-    </section>
+        let currentUser = null;
+        let userProfile = null;
 
-    <!-- ===== WALLET ===== -->
-    <section id="wallet-section" class="section">
-      <div class="wallet-card">
-        <div class="wallet-header">
-          <div class="balance-label">Total Balance</div>
-          <div class="total-balance" id="walletTotalBalanceEl">₹ 0.00</div>
-        </div>
-        <div class="wallet-breakdown">
-          <div class="breakdown-item"><div class="amount text-success" id="walletWinningCashEl">₹ 0.00</div><div class="label">Winnings</div></div>
-          <div class="breakdown-item"><div class="amount text-warning" id="walletBonusCashEl">₹ 0.00</div><div class="label">Bonus</div></div>
-        </div>
-        <div class="wallet-actions">
-          <button class="btn btn-custom btn-action btn-add-money" id="addAmountWalletBtnEl"><i class="bi bi-plus-circle-fill me-2"></i>Add Money</button>
-          <button class="btn btn-custom btn-action btn-withdraw-money" id="withdrawBtnEl"><i class="bi bi-cash-coin me-2"></i>Withdraw</button>
-        </div>
-        <div class="transactions-link"><a href="#" id="allTransactionsBtnEl">View All Transactions <i class="bi bi-arrow-right-short"></i></a></div>
-      </div>
-      <h3 class="section-title mt-4">Recent Transactions</h3>
-      <div id="recentTransactionsListEl"></div>
-    </section>
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userBalance = document.getElementById('userBalance');
+        const referralCodeDisplay = document.getElementById('referralCodeDisplay');
+        const tournamentsContainer = document.getElementById('tournamentsContainer');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const ffUidDisplay = document.getElementById('ffUidDisplay');
+        const ffClanDisplay = document.getElementById('ffClanDisplay');
 
-    <!-- ===== RECHARGE SECTION ===== -->
-    <section id="recharge-section" class="section">
-      <div id="recharge-step-1-amount">
-        <div class="text-center mb-4">
-          <p class="text-secondary mb-1">Total Balance</p>
-          <h2 class="fw-bold">₹ <span id="rechargeBalanceDisplay">0.00</span></h2>
-        </div>
-        <div class="recharge-card">
-          <label class="form-label text-center d-block">Amount</label>
-          <div class="amount-input-group">
-            <span class="rupee-symbol">₹</span>
-            <input type="number" class="form-control" id="rechargeAmountInput" placeholder="10 - 1000" min="10" max="1000">
-          </div>
-          <div class="d-flex justify-content-between mt-2">
-            <small class="text-secondary">Minimum: ₹ 10</small>
-            <small class="text-secondary">Maximum: ₹ 1000</small>
-          </div>
-          <div class="amount-presets">
-            <button class="amount-preset-btn" data-amount="20">₹ 20</button>
-            <button class="amount-preset-btn" data-amount="50">₹ 50</button>
-            <button class="amount-preset-btn" data-amount="100">₹ 100</button>
-            <button class="amount-preset-btn" data-amount="200">₹ 200</button>
-            <button class="amount-preset-btn" data-amount="500">₹ 500</button>
-            <button class="amount-preset-btn" data-amount="1000">₹ 1000</button>
-          </div>
-        </div>
-        <!-- Telegram link -->
-        <div class="text-center mb-3">
-          <a href="https://t.me/your_group_link" target="_blank" class="btn btn-outline-info btn-sm">
-            <i class="bi bi-telegram"></i> Join our Telegram for support & verification
-          </a>
-        </div>
-        <div id="rechargeStep1Status" class="alert" style="display: none;"></div>
-        <div class="d-grid">
-          <button class="btn btn-custom btn-custom-primary btn-lg" id="goToStep2Btn">Recharge</button>
-        </div>
-      </div>
-      <div id="recharge-step-2-method" style="display: none;">
-        <div class="text-center mb-4">
-          <p class="text-secondary mb-1">Recharge Amount</p>
-          <h2 class="fw-bold">₹ <span id="rechargeAmountConfirm">20</span></h2>
-        </div>
-        <h3 class="section-title">Select Payment Method</h3>
-        <div id="paymentOptionsContainer">
-          <div class="payment-option-card">
-            <div class="d-flex align-items-center">
-              <img src="https://i.ibb.co/kFgvQdg/phonepay.png" alt="Phone Pay" class="me-3">
-              <span class="fw-bold">Phone Pay</span>
-            </div>
-            <input class="form-check-input" type="radio" name="paymentMethod" id="pay-Phone Pay" value="Phone Pay" checked>
-          </div>
-        </div>
-        <div id="rechargeStep2Status" class="alert" style="display: none;"></div>
-        <div class="d-grid mt-4">
-          <button class="btn btn-custom btn-custom-primary btn-lg" id="goToStep3Btn">Process to Pay</button>
-        </div>
-      </div>
-      <div id="recharge-step-3-payment" style="display: none;">
-        <div class="text-center mb-4">
-          <p class="text-secondary mb-1">Recharge Amount</p>
-          <h2 class="fw-bold">₹ <span id="rechargeFinalAmount">20</span></h2>
-        </div>
-        <div class="payment-details-card d-flex align-items-center justify-content-between mb-4">
-          <div>
-            <p class="text-secondary mb-1">Payment Mode : <strong class="text-primary" id="rechargePaymentMode">Phone Pay</strong></p>
-            <p class="mb-0">Phone Pay ID : <strong class="text-accent" id="rechargeUpiId">9848988740</strong></p>
-          </div>
-          <div class="qr-code-container">
-            <img src="https://i.ibb.co/j9P6NzXp/IMG-20250822-120255.jpg" alt="QR Code" id="rechargeQrCodeImg">
-          </div>
-        </div>
-        <div class="d-grid grid-cols-2 gap-2 mb-4" style="grid-template-columns: 1fr 1fr 1fr;">
-          <button class="btn btn-custom btn-custom-secondary" id="rechargeCopyAmtBtn">Copy Amt</button>
-          <button class="btn btn-custom btn-custom-secondary" id="rechargeCopyUpiBtn">Copy Phone Pay ID</button>
-          <button class="btn btn-custom btn-custom-secondary" id="rechargeDownloadQrBtn">Download QR</button>
-        </div>
-        <div class="vertical-stepper mb-4">
-          <div class="step-icon">1</div>
-          <div class="step-content">
-            <h5>Enter Payment Transaction Code</h5>
-            <p>After paying, enter the transaction ID below.</p>
-            <input type="text" class="form-control" id="rechargeUtrInput" placeholder="Enter Transaction Code here...">
-          </div>
-        </div>
-        <div class="vertical-stepper mb-4">
-          <div class="step-icon">2</div>
-          <div class="step-content">
-            <h5>Upload Payment Screenshot</h5>
-            <p>Upload a clear screenshot of your payment.</p>
-            <div class="file-upload-wrapper">
-              <input type="file" id="rechargeScreenshotInput" accept="image/*">
-              <div class="file-upload-text">
-                <i class="bi bi-cloud-arrow-up-fill"></i>
-                <span>Click to upload proof</span>
-              </div>
-            </div>
-            <div id="file-upload-name"></div>
-          </div>
-        </div>
-        <div class="vertical-stepper">
-          <div class="step-icon">3</div>
-          <div class="step-content">
-            <h5>Submit</h5>
-            <p>Our agent will verify your payment shortly.</p>
-          </div>
-        </div>
-        <div id="rechargeStep3Status" class="alert mt-4" style="display: none;"></div>
-        <div class="d-grid gap-2 mt-4" style="grid-template-columns: 1fr 1fr;">
-          <button class="btn btn-custom btn-custom-secondary" id="rechargeCancelBtn">Cancel</button>
-          <button class="btn btn-custom btn-custom-primary" id="rechargeSubmitBtn">Submit</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== PROFILE ===== -->
-    <section id="profile-section" class="section">
-      <!-- same profile structure as original – uses logo in avatar fallback -->
-      <div class="profile-header-card">
-        <div class="profile-main-info">
-          <div class="profile-avatar-wrapper" id="profileAvatarWrapperEl">
-            <img src="POPPY_ESPORTS.png" alt="Avatar" class="profile-avatar" id="profileAvatarEl">
-            <div class="profile-avatar-overlay"><i class="bi bi-camera-fill"></i></div>
-            <input type="file" id="profileAvatarInput" accept="image/*">
-          </div>
-          <div class="profile-user-details">
-            <div class="profile-name-container">
-              <h3 class="profile-name" id="profileNameEl">User</h3>
-              <button class="edit-name-btn" id="editNameBtnEl"><i class="bi bi-pencil-square"></i></button>
-            </div>
-            <p class="profile-email" id="profileEmailEl">user@example.com</p>
-          </div>
-        </div>
-        <div class="profile-stats w-100">
-          <div class="stat-item"><strong id="profileTotalMatchesEl">0</strong><span>Matches</span></div>
-          <div class="stat-item"><strong id="profileWonMatchesEl">0</strong><span>Wins</span></div>
-          <div class="stat-item"><strong id="profileTotalEarningsEl">₹ 0</strong><span>Winnings</span></div>
-        </div>
-      </div>
-      <div class="profile-links">
-        <div class="list-group custom-card">
-          <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-bell-fill"></i> Notifications</span>
-            <button class="btn btn-sm btn-custom-secondary" id="enableNotificationsBtn">Enable</button>
-          </label>
-          <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item" id="matchHistoryBtn">
-            <span><i class="bi bi-clock-history"></i> Match History</span>
-            <i class="bi bi-chevron-right"></i>
-          </a>
-          <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item" id="changePasswordBtn">
-            <span><i class="bi bi-key-fill"></i> Change Password</span>
-            <i class="bi bi-chevron-right"></i>
-          </a>
-          <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item" data-policy="refer"> <span><i class="bi bi-person-plus-fill"></i> Refer & Earn</span> <i class="bi bi-chevron-right"></i> </a>
-          <a href="#" id="contactUsBtnEl" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item">
-            <span><i class="bi bi-whatsapp"></i> Contact Us</span>
-            <i class="bi bi-chevron-right"></i>
-          </a>
-          <a href="#" id="developerContactBtn" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item">
-            <span><i class="bi bi-code-slash"></i> Developer</span>
-            <i class="bi bi-chevron-right"></i>
-          </a>
-          <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item" data-policy="privacy"> <span><i class="bi bi-shield-lock-fill"></i> Privacy Policy</span><i class="bi bi-chevron-right"></i> </a>
-          <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item" data-policy="terms"> <span><i class="bi bi-file-text-fill"></i> Terms and Conditions</span><i class="bi bi-chevron-right"></i> </a>
-          <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item" data-policy="refund"> <span><i class="bi bi-arrow-repeat"></i> Refund and Cancellation</span><i class="bi bi-chevron-right"></i> </a>
-          <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center interactive-list-item" data-policy="fairPlay"> <span><i class="bi bi-patch-check-fill"></i> Fair Play Policy</span><i class="bi bi-chevron-right"></i> </a>
-          <button class="list-group-item list-group-item-action text-danger d-flex justify-content-between align-items-center interactive-list-item" id="logoutProfileBtnEl"> <span><i class="bi bi-box-arrow-right"></i> Logout</span><span></span> </button>
-        </div>
-      </div>
-      <p class="text-center text-secondary small mt-4">@bhajani 5 laubasta</p>
-    </section>
-
-    <!-- ===== LEADERBOARD ===== -->
-    <section id="leaderboard-section" class="section">
-      <h2 class="section-title">Top Players</h2>
-      <div id="leaderboardListEl"></div>
-    </section>
-
-  </main>
-
-  <!-- ======== BOTTOM NAVIGATION ======== -->
-  <nav class="bottom-nav">
-    <button class="nav-item active" data-section="home-section"><i class="bi bi-house-door-fill"></i><span>Home</span></button>
-    <button class="nav-item" data-section="my-contests-section"><i class="bi bi-joystick"></i><span>My Contests</span></button>
-    <button class="nav-item nav-item-center" data-section="leaderboard-section"><i class="bi bi-trophy-fill"></i><span></span></button>
-    <button class="nav-item" data-section="wallet-section"><i class="bi bi-wallet-fill"></i><span>Wallet</span></button>
-    <button class="nav-item" data-section="profile-section"><i class="bi bi-person-fill"></i><span>Profile</span></button>
-  </nav>
-
-  <!-- ======== MODALS ======== -->
-  <!-- Include all modals from original user.html (policy, match details, ID/pass, join, notifications, edit name, match history, slot selection, chat) -->
-  <!-- I omit them for brevity – you must copy them from your original file -->
-
-  <!-- ======== SCRIPTS ======== -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script>
-    // ================================================================
-    // POPPY ESPORTS – Full User Logic (Supabase)
-    // ================================================================
-
-    const SUPABASE_URL = 'https://your-project.supabase.co';
-    const SUPABASE_ANON_KEY = 'your-anon-key';
-    const IMGBB_API_KEY = '5a9a4df0c64cde49735902ccdc60b7af';
-
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ======================== STATE ========================
-    let currentUser = null;
-    let userProfile = {};
-    let dbListeners = {};
-    let currentSectionId = 'login-section';
-    let navigationStack = ['login-section'];
-    let swiperInstance;
-    let currentTournamentGameId = null;
-    let appSettings = {};
-    let currentRechargeData = { amount: 0, paymentMethod: null, upiId: null, screenshotFile: null };
-    let currentWithdrawData = { method: null };
-    let currentJoinTournamentData = { tId: null, fee: 0, mode: 'Solo', hasSlots: false, slotConfig: null, selectedSlots: [] };
-    let currentChatListener = null;
-    let currentReply = null;
-    let countdownInterval = null;
-
-    // ======================== HELPERS ========================
-    const getElement = (id) => document.getElementById(id);
-    const showLoader = (show) => { const el = getElement('globalLoaderEl'); if(el) el.style.display = show ? 'flex' : 'none'; };
-    function showStatus(element, message, type = 'danger', autohide = 5000) {
-      if(!element) return;
-      element.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
-      element.style.display = 'block';
-      if(autohide) setTimeout(() => { if(element.innerHTML.includes(message)) element.style.display = 'none'; }, autohide);
-    }
-    function clearStatus(element) { if(element) element.innerHTML = ''; }
-    function formatDate(timestamp) {
-      if(!timestamp) return 'N/A';
-      const d = new Date(timestamp);
-      return d.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
-    }
-    function formatCurrency(amount) { return `₹ ${(amount || 0).toFixed(2)}`; }
-    function generateReferralCode(length = 8) {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let result = '';
-      for (let i = 0; i < length; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-      return result;
-    }
-    function copyToClipboard(selector) {
-      const el = document.querySelector(selector);
-      if(!el) return;
-      navigator.clipboard.writeText(el.textContent).then(() => alert('Copied!')).catch(() => alert('Copy failed.'));
-    }
-    function getTimeRemaining(startTime) {
-      if(!startTime) return 'TBA';
-      const diff = startTime - Date.now();
-      if(diff <= 0) return 'Started';
-      const days = Math.floor(diff / 86400000);
-      const hours = Math.floor((diff % 86400000) / 3600000);
-      const minutes = Math.floor((diff % 3600000) / 60000);
-      return `${days>0?days+'d ':''}${hours}h ${minutes}m`;
-    }
-    function startLiveTimers() {
-      if(countdownInterval) clearInterval(countdownInterval);
-      countdownInterval = setInterval(() => {
-        document.querySelectorAll('.tournament-card-timer[data-starttime]').forEach(el => {
-          const start = parseInt(el.dataset.starttime);
-          if(!isNaN(start)) el.textContent = getTimeRemaining(start);
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            const user = session?.user || null;
+            if (user) {
+                currentUser = user;
+                const { data: profile, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                if (error) {
+                    alert('Error loading profile. Please login again.');
+                    supabase.auth.signOut();
+                    window.location.href = '/';
+                    return;
+                }
+                userProfile = profile;
+                userNameDisplay.textContent = profile.display_name || user.email;
+                userBalance.textContent = '₹' + (profile.balance || 0);
+                referralCodeDisplay.textContent = profile.referral_code || 'N/A';
+                // UID & Clan
+                if (profile.free_fire_uid) {
+                    ffUidDisplay.textContent = profile.free_fire_uid;
+                    ffClanDisplay.textContent = profile.ff_clan_name || 'N/A';
+                } else {
+                    document.getElementById('ffBadge').style.display = 'none';
+                }
+                loadUpcomingTournaments();
+            } else {
+                window.location.href = '/';
+            }
         });
-      }, 1000);
-    }
-    function removePlaceholders(parent) {
-      if(parent) parent.classList.remove('placeholder-glow');
-      document.querySelectorAll('.placeholder').forEach(el => el.remove());
-    }
 
-    // ======================== AUTH ========================
-    async function signUpWithEmail(name, email, phone, password, referralCode) {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { display_name: name, phone_number: phone } }
-      });
-      if (authError) throw authError;
-      const uid = authData.user.id;
-      const profile = {
-        id: uid,
-        email,
-        display_name: name,
-        phone_number: phone,
-        balance: appSettings.signupBonus || 10,
-        winning_cash: 0,
-        bonus_cash: appSettings.signupBonus || 10,
-        status: 'active',
-        referral_code: generateReferralCode(),
-        referred_by: null,
-        created_at: new Date(),
-        total_matches: 0,
-        won_matches: 0,
-        total_earnings: 0,
-        referral_earnings: 0
-      };
-      const { error: profileError } = await supabase.from('users').insert([profile]);
-      if (profileError) throw profileError;
-      if (referralCode) {
-        const { data: referrer, error: refError } = await supabase
-          .from('users')
-          .select('id')
-          .eq('referral_code', referralCode)
-          .single();
-        if (!refError && referrer) {
-          await supabase.from('pending_referrals').insert([{
-            referrer_uid: referrer.id,
-            referred_uid: uid,
-            status: 'pending',
-            timestamp: new Date()
-          }]);
-          await supabase.from('users').update({ referred_by: referrer.id }).eq('id', uid);
+        async function loadUpcomingTournaments() {
+            const { data: tournaments, error } = await supabase
+                .from('tournaments')
+                .select('*, games(name, image_url)')
+                .eq('status', 'upcoming')
+                .order('start_time', { ascending: true })
+                .limit(10);
+
+            if (error) {
+                tournamentsContainer.innerHTML = `<div class="no-tournaments">Error loading tournaments.</div>`;
+                return;
+            }
+
+            if (!tournaments || tournaments.length === 0) {
+                tournamentsContainer.innerHTML = `<div class="no-tournaments">No upcoming tournaments at the moment. Stay tuned!</div>`;
+                return;
+            }
+
+            let html = '';
+            for (const t of tournaments) {
+                const start = new Date(t.start_time).toLocaleString();
+                const gameName = t.games?.name || 'Free Fire';
+                const gameIcon = t.games?.image_url || 'https://i.ibb.co/4Z5hPVzp/20250418-150058.jpg';
+                const entryFee = t.entry_fee || 0;
+                const prizePool = t.prize_pool || 0;
+                const maxPlayers = t.max_players || 0;
+                const registeredCount = t.registered_players ? Object.keys(t.registered_players).length : 0;
+                const slotsLeft = maxPlayers > 0 ? maxPlayers - registeredCount : '∞';
+                const isFull = maxPlayers > 0 && slotsLeft <= 0;
+                const isJoined = userProfile?.joined_tournaments && userProfile.joined_tournaments[t.id];
+
+                html += `
+                    <div class="tournament-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center;">
+                                <img src="${gameIcon}" alt="${gameName}" class="game-icon">
+                                <h3>${t.name}</h3>
+                            </div>
+                            <div>
+                                <span class="slots-remaining ${isFull ? 'slots-full' : ''}">
+                                    <i class="bi bi-people"></i> ${isFull ? 'Full' : slotsLeft + ' slots left'}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin: 10px 0;">
+                            <span><i class="bi bi-calendar-event"></i> ${start}</span>
+                            <span><i class="bi bi-trophy"></i> Prize: ₹${prizePool}</span>
+                            <span><i class="bi bi-currency-rupee"></i> Entry: ₹${entryFee}</span>
+                            <span><i class="bi bi-controller"></i> ${t.mode || 'Solo'}</span>
+                        </div>
+                        ${isJoined ? '<span style="color: #00ff88;">✔ Joined</span>' : 
+                          (isFull ? '<span style="color: #ff4444;">FULL</span>' : 
+                          `<button class="btn-join" data-id="${t.id}" data-fee="${entryFee}">Join Tournament</button>`)}
+                    </div>
+                `;
+            }
+            tournamentsContainer.innerHTML = html;
+
+            document.querySelectorAll('.btn-join').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = btn.dataset.id;
+                    const fee = parseFloat(btn.dataset.fee);
+                    await joinTournament(id, fee);
+                });
+            });
         }
-      }
-      return authData.user;
-    }
 
-    async function signInWithEmail(email, password) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      return data.user;
-    }
+        async function joinTournament(tournamentId, fee) {
+            if (!currentUser) return;
+            if ((userProfile.balance || 0) < fee) {
+                alert('Insufficient balance. Please recharge.');
+                return;
+            }
 
-    async function signInWithGoogle() {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-      if (error) throw error;
-    }
+            const { data: t, error: tError } = await supabase
+                .from('tournaments')
+                .select('max_players, registered_players')
+                .eq('id', tournamentId)
+                .single();
+            if (tError || !t) {
+                alert('Tournament not found.');
+                return;
+            }
+            const registeredCount = t.registered_players ? Object.keys(t.registered_players).length : 0;
+            const maxPlayers = t.max_players || 0;
+            if (maxPlayers > 0 && registeredCount >= maxPlayers) {
+                alert('Tournament is full.');
+                return;
+            }
 
-    async function signOut() {
-      await supabase.auth.signOut();
-    }
+            try {
+                const newBalance = userProfile.balance - fee;
+                const joined = { ...(userProfile.joined_tournaments || {}), [tournamentId]: true };
 
-    // ======================== AUTH STATE ========================
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      const user = session?.user || null;
-      currentUser = user;
-      if (user) {
-        const { data: profile, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        if (error) { console.error('Profile fetch error:', error); return; }
-        userProfile = profile;
-        await supabase.from('users').update({ last_login: new Date() }).eq('id', user.id);
-        populateUserInfo(user, profile);
-        setupRealtimeListeners(user.id);
-        updateGlobalUI(true);
-        loadAndDisplayNotifications();
-        navigationStack = ['home-section'];
-        showSection('home-section');
-      } else {
-        currentUser = null;
-        userProfile = {};
-        updateGlobalUI(false);
-        showSection('login-section');
-        detachAllDbListeners();
-      }
-    });
+                const { error: updateUserErr } = await supabase
+                    .from('users')
+                    .update({ balance: newBalance, joined_tournaments: joined })
+                    .eq('id', currentUser.id);
+                if (updateUserErr) throw updateUserErr;
 
-    // ======================== REALTIME ========================
-    function setupRealtimeListeners(uid) {
-      detachAllDbListeners();
-      const channel = supabase
-        .channel(`user-${uid}`)
-        .on('postgres_changes', {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'users',
-          filter: `id=eq.${uid}`
-        }, (payload) => {
-          userProfile = payload.new;
-          populateUserInfo(currentUser, userProfile);
-          if (currentSectionId === 'my-contests-section') loadMyContests();
-          if (currentSectionId === 'wallet-section') loadRecentTransactions();
-        })
-        .subscribe();
-      dbListeners['userProfile'] = channel;
-    }
+                const { error: regErr } = await supabase
+                    .from('registered_players')
+                    .insert([{
+                        tournament_id: tournamentId,
+                        user_id: currentUser.id,
+                        username: userProfile.display_name,
+                        game_uid: userProfile.game_uid || '',
+                        joined_at: new Date()
+                    }]);
+                if (regErr) throw regErr;
 
-    function detachAllDbListeners() {
-      Object.values(dbListeners).forEach(ch => supabase.removeChannel(ch));
-      dbListeners = {};
-    }
+                await supabase.from('transactions').insert([{
+                    user_id: currentUser.id,
+                    type: 'tournament_join',
+                    amount: -fee,
+                    description: `Joined tournament ${tournamentId}`,
+                    timestamp: new Date(),
+                    balance_after: newBalance
+                }]);
 
-    // ======================== UI UPDATES ========================
-    function populateUserInfo(user, profile) {
-      if (!user || !profile) return;
-      const displayName = profile.display_name || user.email?.split('@')[0] || 'User';
-      const balance = profile.balance || 0;
-      const winningCash = profile.winning_cash || 0;
-      const bonusCash = profile.bonus_cash || 0;
-      const totalEarnings = profile.total_earnings || 0;
-      const referralEarnings = profile.referral_earnings || 0;
-      const totalMatches = profile.total_matches || 0;
-      const wonMatches = profile.won_matches || 0;
-      const photoURL = profile.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0F172A&color=E2E8F0&bold=true&size=70`;
+                userProfile.balance = newBalance;
+                userProfile.joined_tournaments = joined;
+                userBalance.textContent = '₹' + newBalance;
 
-      if (getElement('headerUserGreetingEl')) getElement('headerUserGreetingEl').textContent = displayName.split(' ')[0];
-      if (getElement('headerChipBalanceEl')) getElement('headerChipBalanceEl').textContent = Math.floor(balance);
-      if (getElement('walletTotalBalanceEl')) getElement('walletTotalBalanceEl').textContent = formatCurrency(balance);
-      if (getElement('walletWinningCashEl')) getElement('walletWinningCashEl').textContent = formatCurrency(winningCash);
-      if (getElement('walletBonusCashEl')) getElement('walletBonusCashEl').textContent = formatCurrency(bonusCash);
-      if (getElement('rechargeBalanceDisplay')) getElement('rechargeBalanceDisplay').textContent = balance.toFixed(2);
-      if (getElement('profileAvatarEl')) getElement('profileAvatarEl').src = photoURL;
-      if (getElement('profileNameEl')) getElement('profileNameEl').textContent = displayName;
-      if (getElement('profileEmailEl')) getElement('profileEmailEl').textContent = user.email || user.phoneNumber || 'N/A';
-      if (getElement('profileTotalMatchesEl')) getElement('profileTotalMatchesEl').textContent = totalMatches;
-      if (getElement('profileWonMatchesEl')) getElement('profileWonMatchesEl').textContent = wonMatches;
-      if (getElement('profileTotalEarningsEl')) getElement('profileTotalEarningsEl').textContent = formatCurrency(totalEarnings);
-      if (getElement('earningsTotalEl')) getElement('earningsTotalEl').textContent = formatCurrency(totalEarnings);
-      if (getElement('earningsReferralEl')) getElement('earningsReferralEl').textContent = formatCurrency(referralEarnings);
-    }
+                alert('Joined successfully!');
+                loadUpcomingTournaments();
+            } catch (err) {
+                alert('Error joining: ' + err.message);
+            }
+        }
 
-    function updateGlobalUI(isLoggedIn) {
-      if (getElement('headerWalletChipEl')) getElement('headerWalletChipEl').style.display = isLoggedIn ? 'flex' : 'none';
-      if (!isLoggedIn && getElement('headerUserGreetingEl')) getElement('headerUserGreetingEl').textContent = 'Guest';
-      if (!isLoggedIn && getElement('headerChipBalanceEl')) getElement('headerChipBalanceEl').textContent = '0';
-      document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-        const section = item.dataset.section;
-        item.style.display = (section === 'home-section' || isLoggedIn) ? 'flex' : 'none';
-      });
-    }
-
-    function showSection(sectionId, isBack = false) {
-      if (!sectionId) return;
-      const target = getElement(sectionId);
-      if (!target) return;
-      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-      target.classList.add('active');
-      currentSectionId = sectionId;
-      // Update header, nav, etc.
-      if (!isBack) navigationStack.push(sectionId);
-      history.pushState({section: sectionId}, '', `#${sectionId}`);
-      // Load data
-      switch(sectionId) {
-        case 'home-section': loadHomePageData(); break;
-        case 'my-contests-section': loadMyContests(); break;
-        case 'wallet-section': loadWalletData(); break;
-        case 'profile-section': loadProfileData(); break;
-        case 'leaderboard-section': loadLeaderboardData(); break;
-        case 'tournaments-section': if(currentTournamentGameId) filterTournaments(currentTournamentGameId, document.querySelector('.tournament-tabs .tab-item.active')?.dataset.status || 'upcoming'); break;
-      }
-      window.scrollTo(0,0);
-    }
-
-    // ======================== DATA LOADING ========================
-    async function loadAppSettings() {
-      const { data, error } = await supabase.from('settings').select('*').limit(1).single();
-      if (error) {
-        appSettings = { minWithdraw: 50, signupBonus: 10, referralBonus: 5, supportContact: '9389660753', developerContact: '9848988740', upiDetails: '9848988740', qrCodeUrl: 'https://i.ibb.co/j9P6NzXp/IMG-20250822-120255.jpg' };
-      } else {
-        appSettings = data || {};
-        if (appSettings.theme) applyTheme(appSettings.theme);
-      }
-    }
-
-    function applyTheme(theme) {
-      const root = document.documentElement;
-      for (const [key, value] of Object.entries(theme)) {
-        if (value) root.style.setProperty(`--${key}`, value);
-      }
-    }
-
-    async function loadHomePageData() {
-      loadAnnouncement();
-      loadPromotions();
-      loadGames();
-    }
-
-    async function loadAnnouncement() {
-      const bar = getElement('announcementBarEl');
-      if (!bar) return;
-      if (appSettings.announcementBar && appSettings.announcementBar.isEnabled && appSettings.announcementBar.text) {
-        getElement('announcementTextEl').innerHTML = appSettings.announcementBar.text;
-        bar.style.display = 'flex';
-      } else {
-        bar.style.display = 'none';
-      }
-    }
-
-    async function loadPromotions() {
-      const sliderWrapper = document.querySelector('#promotionSliderEl .swiper-wrapper');
-      if (!sliderWrapper) return;
-      const { data, error } = await supabase.from('promotions').select('*').eq('enabled', true);
-      if (error) return;
-      sliderWrapper.innerHTML = '';
-      data.forEach(promo => {
-        const slide = document.createElement('div');
-        slide.className = 'swiper-slide';
-        slide.innerHTML = promo.link ? `<a href="${promo.link}" target="_blank"><img src="${promo.image_url}" alt="Promo"></a>` : `<img src="${promo.image_url}" alt="Promo">`;
-        sliderWrapper.appendChild(slide);
-      });
-      if (swiperInstance) swiperInstance.destroy(true, true);
-      swiperInstance = new Swiper('#promotionSliderEl', {
-        loop: data.length > 1,
-        autoplay: { delay: 3500, disableOnInteraction: false },
-        pagination: { el: '.swiper-pagination', clickable: true },
-        slidesPerView: 1
-      });
-    }
-
-    async function loadGames() {
-      const container = getElement('gamesListEl');
-      if (!container) return;
-      const { data, error } = await supabase.from('games').select('*');
-      if (error) return;
-      container.innerHTML = '';
-      data.forEach(game => {
-        const col = document.createElement('div');
-        col.className = 'col-4';
-        col.innerHTML = `<div class="game-card custom-card" data-game-id="${game.id}" data-game-name="${game.name}"><img src="${game.image_url}" alt="${game.name}"><span>${game.name}</span></div>`;
-        col.querySelector('.game-card').addEventListener('click', () => {
-          currentTournamentGameId = game.id;
-          loadTournamentsForGame(game.id, game.name);
+        logoutBtn.addEventListener('click', () => {
+            supabase.auth.signOut();
+            window.location.href = '/';
         });
-        container.appendChild(col);
-      });
-    }
-
-    // ... (many more data functions: loadTournaments, loadMyContests, loadWalletData, loadRecentTransactions, loadLeaderboardData, etc.)
-    // These are identical to the Supabase version provided in earlier messages.
-    // To save space, I'll include a placeholder – but you MUST copy the full implementations from the previous full code response.
-    // For a complete file, you need all these functions.
-
-    // ======================== DEPOSIT (Telegram) ========================
-    async function submitDepositRequest() {
-      const utr = getElement('rechargeUtrInput').value.trim();
-      const screenshotFile = currentRechargeData.screenshotFile;
-      if (!utr || !screenshotFile) {
-        showStatus(getElement('rechargeStep3Status'), 'UTR and screenshot required.', 'warning');
-        return;
-      }
-      const screenshotUrl = await uploadImageToImgBB(screenshotFile);
-      const depositData = {
-        user_id: currentUser.id,
-        amount: currentRechargeData.amount,
-        payment_method: currentRechargeData.paymentMethod,
-        upi_id: currentRechargeData.upiId,
-        utr: utr,
-        screenshot_url: screenshotUrl,
-        status: 'pending',
-        timestamp: new Date()
-      };
-      const { error } = await supabase.from('deposits').insert([depositData]);
-      if (error) {
-        showStatus(getElement('rechargeStep3Status'), 'Failed to submit deposit. Error: ' + error.message, 'danger');
-        return;
-      }
-      alert('Deposit request submitted! Admin will verify via Telegram.');
-      showSection('wallet-section');
-    }
-
-    async function uploadImageToImgBB(file) {
-      const formData = new FormData();
-      formData.append('image', file);
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
-      const result = await response.json();
-      if (!result.success) throw new Error(result.error?.message || 'ImgBB upload failed');
-      return result.data.url;
-    }
-
-    // ======================== INIT ========================
-    document.addEventListener('DOMContentLoaded', async () => {
-      await loadAppSettings();
-      // Set up event listeners (copy from original – login/signup buttons, navigation, etc.)
-      // ... (all event bindings from original)
-      startLiveTimers();
-      // Show splash screen and then login
-      setTimeout(() => {
-        document.getElementById('splash-screen').classList.add('hidden');
-      }, 2500);
-    });
-  </script>
+    </script>
 </body>
 </html>
