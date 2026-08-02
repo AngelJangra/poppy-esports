@@ -2,6 +2,15 @@
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.status(200)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'Content-Type')
+      .end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
