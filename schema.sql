@@ -1,5 +1,5 @@
 -- ================================================================
--- POPPY ESPORTS – Complete Supabase Schema
+-- POPPY ESPORTS – Complete Supabase Schema (Full Reset)
 -- ================================================================
 
 -- Enable UUID extension
@@ -33,7 +33,20 @@ CREATE TABLE users (
   is_admin BOOLEAN DEFAULT FALSE,
   username TEXT,
   game_uid TEXT,
-  last_checked_notifications TIMESTAMP
+  last_checked_notifications TIMESTAMP,
+  -- Free Fire UID & Clan details
+  free_fire_uid TEXT UNIQUE,
+  ff_clan_id TEXT,
+  ff_clan_name TEXT,
+  ff_captain_id TEXT,
+  ff_captain_nickname TEXT,
+  ff_captain_level INTEGER,
+  ff_captain_region TEXT,
+  ff_verified BOOLEAN DEFAULT FALSE,
+  -- Referral tracking
+  total_referred_spending NUMERIC DEFAULT 0,
+  referral_earnings_from_spending NUMERIC DEFAULT 0,
+  joined_tournaments JSONB DEFAULT '{}'
 );
 
 -- Games
@@ -171,7 +184,8 @@ CREATE TABLE settings (
   app_name TEXT DEFAULT 'POPPY ESPORTS',
   signup_bonus NUMERIC DEFAULT 10,
   min_withdraw NUMERIC DEFAULT 50,
-  referral_bonus NUMERIC DEFAULT 5,
+  referral_bonus NUMERIC DEFAULT 10,
+  referral_percent NUMERIC DEFAULT 10,
   referral_share_link TEXT,
   support_contact TEXT,
   developer_contact TEXT,
@@ -184,7 +198,12 @@ CREATE TABLE settings (
   policy_refund TEXT,
   policy_fair_play TEXT,
   theme JSONB,
-  last_updated TIMESTAMP
+  last_updated TIMESTAMP,
+  telegram_link TEXT,
+  discord_link TEXT,
+  youtube_link TEXT,
+  instagram_link TEXT,
+  game_icon_url TEXT
 );
 
 -- Admin Config
@@ -195,23 +214,36 @@ CREATE TABLE admin_config (
 );
 
 -- ================================================================
--- INSERT DEFAULT SETTINGS WITH POPPY ESPORTS
+-- INSERT DEFAULT SETTINGS & FREE FIRE GAME
 -- ================================================================
+
+-- Insert Free Fire game (if not exists)
+INSERT INTO games (id, name, image_url, created_at)
+SELECT 
+  gen_random_uuid(), 
+  'Free Fire', 
+  'https://i.ibb.co/4Z5hPVzp/20250418-150058.jpg', 
+  NOW()
+WHERE NOT EXISTS (SELECT 1 FROM games WHERE name = 'Free Fire');
+
+-- Insert default settings with POPPY ESPORTS
 INSERT INTO settings (
-  app_name, signup_bonus, min_withdraw, referral_bonus,
+  app_name, signup_bonus, min_withdraw, referral_bonus, referral_percent,
   support_contact, developer_contact, upi_details, qr_code_url,
-  logo_url, splash_logo_url
+  logo_url, splash_logo_url, game_icon_url
 ) VALUES (
   'POPPY ESPORTS',
   10,
   50,
-  5,
+  10,
+  10,
   '9389660753',
   '9848988740',
   '9848988740',
   'https://i.ibb.co/j9P6NzXp/IMG-20250822-120255.jpg',
   'POPPY_ESPORTS.png',
-  'POPPY_ESPORTS.png'
+  'POPPY_ESPORTS.png',
+  'https://i.ibb.co/4Z5hPVzp/20250418-150058.jpg'
 );
 
 -- ================================================================
@@ -304,6 +336,7 @@ CREATE INDEX idx_users_leaderboard_rank ON users(leaderboard_rank);
 CREATE INDEX idx_withdrawals_status ON withdrawals(status);
 CREATE INDEX idx_deposits_status ON deposits(status);
 CREATE INDEX idx_pending_referrals_status ON pending_referrals(status);
+CREATE INDEX idx_users_free_fire_uid ON users(free_fire_uid);
 
 -- ================================================================
 -- FUNCTION: add_balance (used by admin to credit users atomically)
