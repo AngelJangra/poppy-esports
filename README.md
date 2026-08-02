@@ -1,6 +1,6 @@
 <!-- README.md -->
 <p align="center">
-  <img src="https://i.ibb.co/Qj8BBR2K/IMG-20251006-WA0001.jpg" alt="POPPY ESPORTS Logo" width="120" />
+  <img src="POPPY-ESPORTS.png" alt="POPPY ESPORTS Logo" width="120" />
 </p>
 
 <h1 align="center">🎮 POPPY ESPORTS</h1>
