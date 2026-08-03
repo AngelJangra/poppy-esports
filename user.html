@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* (same styles – unchanged) */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Poppins', sans-serif;
@@ -24,7 +25,6 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
         .header {
             display: flex;
             justify-content: space-between;
@@ -50,7 +50,6 @@
             font-size: 1.1rem;
             color: #fff;
         }
-
         .user-actions {
             display: flex;
             align-items: center;
@@ -80,7 +79,6 @@
         .btn-outline:hover { background: rgba(255,255,255,0.05); }
         .btn-outline.danger { border-color: #ff6b6b; color: #ff6b6b; }
         .btn-outline.danger:hover { background: #ff6b6b; color: #fff; }
-
         .ff-badge {
             background: rgba(255,255,255,0.04);
             backdrop-filter: blur(8px);
@@ -100,7 +98,6 @@
         .ff-badge .uid { color: #fff; font-weight: 600; }
         .ff-badge .nickname { color: #00aaff; font-weight: 600; }
         .ff-badge .clan { color: #888; }
-
         .referral-banner {
             background: linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,170,255,0.08));
             border: 1px solid rgba(0,255,136,0.15);
@@ -130,7 +127,6 @@
             font-size: 0.95rem;
             letter-spacing: 1px;
         }
-
         .section-title {
             font-size: 1.2rem;
             font-weight: 600;
@@ -205,13 +201,11 @@
         .tournament-card .join-btn:active { transform: scale(0.95); }
         .tournament-card .status-joined { color: #00ff88; font-weight: 600; }
         .tournament-card .status-full { color: #ff6b6b; font-weight: 600; }
-
         .no-tournaments {
             text-align: center;
             padding: 40px 0;
             color: #666;
         }
-
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -264,7 +258,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (Delete Account fixes)
+        // POPPY ESPORTS – User Dashboard (Permanent Delete via API)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -347,21 +341,27 @@
             return newData;
         }
 
-        // ============ DELETE ACCOUNT (mark as deleted) ============
+        // ============ PERMANENT DELETE via API ============
         deleteBtn.addEventListener('click', async () => {
             if (!currentUser) return;
-            if (!confirm('⚠️ Are you sure you want to delete your account? This action cannot be undone!')) return;
+            if (!confirm('⚠️ Are you sure you want to permanently delete your account? All data will be erased and you cannot recover it!')) return;
 
             try {
                 deleteBtn.disabled = true;
                 deleteBtn.textContent = 'Deleting...';
 
-                // Mark as deleted instead of deleting the row
-                const { error: updateError } = await supabaseClient
-                    .from('users')
-                    .update({ deleted: true })
-                    .eq('id', currentUser.id);
-                if (updateError) throw updateError;
+                // Call the serverless function
+                const response = await fetch('/api/delete-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to delete account');
+                }
 
                 // Sign out and redirect
                 await supabaseClient.auth.signOut();
@@ -382,15 +382,13 @@
                 try {
                     userProfile = await ensureProfile(user);
 
-                    // ---- CHECK IF ACCOUNT IS DELETED ----
+                    // Check if deleted flag is true (soft delete fallback)
                     if (userProfile.deleted === true) {
-                        console.log('Account is deleted. Signing out.');
                         await supabaseClient.auth.signOut();
                         window.location.href = '/';
                         return;
                     }
 
-                    // Update UI
                     userNameDisplay.textContent = userProfile.display_name || user.email;
                     userBalance.textContent = '₹' + (userProfile.balance || 0);
                     referralCodeDisplay.textContent = userProfile.referral_code || 'N/A';
