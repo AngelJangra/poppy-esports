@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        /* (same styles – unchanged) */
+        /* (same styles as before – unchanged) */
         :root { --primary: #00aaff; --secondary: #bd00ff; --success: #00ff88; --accent-pink: #ff00c8; --bg: #030303; --card-bg: rgba(255,255,255,0.04); --elastic: cubic-bezier(0.34,1.56,0.64,1); }
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Plus Jakarta Sans',sans-serif; }
         body { background-color:var(--bg); color:#fff; overflow-x:hidden; background-image:url('https://i.ibb.co/Qj8BBR2K/IMG-20251006-WA0001.jpg'); background-size:cover; background-attachment:fixed; background-position:center; }
@@ -74,7 +74,6 @@
     </style>
 </head>
 <body>
-    <!-- (same HTML structure – unchanged) -->
     <div class="overlay">
         <header class="logo-wrap reveal active">
             <img src="POPPY_ESPORTS.png" alt="POPPY ESPORTS Logo" class="logo-main">
@@ -185,7 +184,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – Landing Page (Final with Diagnostic)
+        // POPPY ESPORTS – Landing Page (Duplicate Email Handled)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -196,7 +195,6 @@
         // ---- DIAGNOSTIC: test the connection ----
         (async function testConnection() {
             try {
-                // Try to fetch a simple count from the users table
                 const { data, error } = await supabaseClient
                     .from('users')
                     .select('*', { count: 'exact', head: true });
@@ -418,6 +416,38 @@
 
             try {
                 const { name, phone, email, password, referral } = signupData;
+
+                // ---- CHECK IF EMAIL ALREADY EXISTS IN USERS TABLE ----
+                const { data: existingUser } = await supabaseClient
+                    .from('users')
+                    .select('id')
+                    .eq('email', email)
+                    .maybeSingle();
+
+                if (existingUser) {
+                    // Email already registered – inform user and redirect to login
+                    uidMessage.textContent = '❌ Email already registered. Please login.';
+                    uidMessage.style.color = '#ffaa00';
+                    verifyUidBtn.disabled = false;
+                    // Optionally redirect after a delay
+                    setTimeout(() => {
+                        // Switch to login mode
+                        isLogin = true;
+                        authTitle.textContent = 'Login';
+                        authSubmitBtn.textContent = 'Login';
+                        authToggle.textContent = "Don't have an account? Sign Up";
+                        authName.style.display = 'none';
+                        authPhone.style.display = 'none';
+                        authReferral.style.display = 'none';
+                        step1Content.style.display = 'block';
+                        step2Content.style.display = 'none';
+                        step1.className = 'step active';
+                        step2.className = 'step';
+                        authMessage.textContent = 'That email is already registered. Please login.';
+                        authMessage.style.color = '#ffaa00';
+                    }, 1500);
+                    return;
+                }
 
                 // ---- SIGNUP ----
                 const { data: authData, error: authError } = await supabaseClient.auth.signUp({
