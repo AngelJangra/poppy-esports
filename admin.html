@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* ====== Dark Theme (unchanged) ====== */
+    /* ====== Dark Theme ====== */
     :root {
       --primary-bg: #0F172A;
       --secondary-bg: #1E293B;
@@ -32,10 +32,131 @@
       --placeholder-bg: rgba(100,116,139,0.15);
     }
     body { background-color: var(--primary-bg); color: var(--text-primary); font-family: 'Poppins', sans-serif; padding-top: 60px; }
-    /* ... (all existing styles from previous admin.html) ... */
-    /* I will keep the existing CSS exactly – it's huge, but we need it.
-       For brevity in this response, I'll include the full style block from the previous admin.html.
-       Since this is a command, I'll embed it fully. */
+    .app-header { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background-color: var(--secondary-bg); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1030; border-bottom: 1px solid var(--border-color); }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .menu-toggle-btn { background: none; border: none; color: var(--text-primary); font-size: 1.5rem; padding: 0 5px; margin-left: -5px; }
+    .header-logo { width: 35px; height: 35px; border-radius: 50%; background-color: #fff; object-fit: cover; border: 1px solid var(--accent-color); }
+    .header-title { font-size: 1rem; font-weight: 600; line-height: 1.2; }
+    .header-right { display: flex; align-items: center; gap: 15px; }
+    .admin-email-header { font-size: 0.8rem; color: var(--text-secondary); display: none; }
+    @media (min-width: 576px) { .admin-email-header { display: inline; } }
+    .offcanvas-start { background-color: var(--sidebar-bg); color: var(--link-color); width: 260px !important; border-right: 1px solid var(--border-color); }
+    .offcanvas-header { border-bottom: 1px solid var(--border-color); padding: 1rem 1.2rem; }
+    .offcanvas-title h5 { color: var(--text-primary); margin-bottom: 0; font-size: 1.1rem; }
+    .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
+    .offcanvas-body { padding: 0; display: flex; flex-direction: column; height: calc(100% - 56px); }
+    .offcanvas-body .nav { flex-grow: 1; overflow-y: auto; }
+    .offcanvas-body .nav-link { color: var(--link-color); padding: 0.8rem 1.2rem; border-left: 3px solid transparent; font-size: 0.95rem; display: flex; align-items: center; }
+    .offcanvas-body .nav-link.active, .offcanvas-body .nav-link:hover { color: var(--link-hover-color); background-color: rgba(255,255,255,0.05); border-left-color: var(--accent-color); }
+    .offcanvas-body .nav-link i, .offcanvas-body .nav-link .sidebar-icon { margin-right: 12px; width: 20px; text-align: center; font-size: 1.1rem; }
+    .offcanvas-logout-btn { margin: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem; }
+    .main-content { padding: 20px; }
+    .section { display: none; animation: fadeIn 0.5s; }
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .section-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; }
+    .login-container { max-width: 400px; margin: 10vh auto; background-color: var(--secondary-bg); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    #adminLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; display: none; }
+    .spinner-border { color: var(--accent-color); }
+    .card { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); margin-bottom: 1.5rem; }
+    .card-title { color: var(--text-primary); }
+    .table-responsive { overflow-x: auto; }
+    .table { background-color: var(--card-bg); color: var(--text-primary); border-color: var(--border-color); margin-bottom: 0; }
+    .table > :not(caption) > * > * { background-color: transparent !important; border-bottom-color: var(--border-color); }
+    .table th { color: var(--text-secondary); font-weight: 500; white-space: nowrap; padding: 0.8rem 1rem; }
+    .table td { vertical-align: middle; white-space: nowrap; padding: 0.7rem 1rem; }
+    .table td .text-muted { color: var(--text-muted-custom) !important; }
+    .table td small.text-muted { font-size: 0.85em; }
+    .table-hover > tbody > tr:hover > * { background-color: rgba(255,255,255,0.03) !important; color: var(--text-primary); }
+    .action-buttons button, .action-buttons a, .action-buttons select { margin-right: 5px; margin-bottom: 5px; }
+    .modal-content { background-color: var(--secondary-bg); color: var(--text-primary); border: 1px solid var(--border-color); }
+    .modal-header { border-bottom-color: var(--border-color); }
+    .modal-footer { border-top-color: var(--border-color); }
+    .modal-body label { margin-bottom: 0.5rem; font-weight: 500; color: var(--text-secondary); }
+    .form-control, .form-select, .form-check-input { background-color: var(--primary-bg); color: var(--text-primary); border: 1px solid var(--border-color); }
+    .form-control:focus, .form-select:focus { background-color: var(--primary-bg); color: var(--text-primary); border-color: var(--accent-color); box-shadow: 0 0 0 0.2rem rgba(250,204,21,0.25); }
+    .form-control::placeholder { color: var(--text-secondary); opacity: 0.7; }
+    .form-control:disabled, .form-select:disabled { background-color: #2d3748; opacity: 0.7; }
+    .form-control[type="file"] { background-color: var(--primary-bg); color: var(--text-secondary); border: 1px solid var(--border-color); }
+    .form-check-input { box-shadow: none !important; }
+    .form-check-input:checked { background-color: var(--accent-color); border-color: var(--accent-color); }
+    .imgbb-upload-status { display: none; margin-top: 5px; font-size: 0.85rem; color: var(--text-secondary); }
+    .table img.preview-img { max-width: 60px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid var(--border-color); }
+    .text-bg-primary { background-color: #3B82F6 !important; }
+    .text-bg-info { background-color: #0ea5e9 !important; }
+    .text-bg-warning { background-color: #f59e0b !important; }
+    .text-bg-success { background-color: #10b981 !important; }
+    .text-bg-danger { background-color: #ef4444 !important; }
+    .text-bg-secondary { background-color: #6b7280 !important; }
+    .text-bg-dark { background-color: #374151 !important; }
+    .nav-tabs .nav-link { color: var(--text-secondary); border-color: var(--border-color); border-bottom-color: transparent; margin-bottom: -1px; }
+    .nav-tabs .nav-link.active { color: var(--accent-color); background-color: var(--card-bg); border-color: var(--border-color); border-bottom-color: var(--card-bg); font-weight: 600; }
+    .nav-tabs { border-bottom-color: var(--border-color); }
+    textarea.form-control { min-height: 120px; }
+    .copy-btn { cursor: pointer; opacity: 0.6; transition: opacity 0.2s; }
+    .copy-btn:hover { opacity: 1; }
+    .status-badge { font-size: 0.8em; padding: 0.3em 0.6em; border-radius: 0.25rem; }
+    .loading-placeholder td > div { background-color: var(--placeholder-bg); border-radius: 4px; min-height: 1.2em; animation: placeholder-glow 2s ease-in-out infinite; }
+    @keyframes placeholder-glow { 0% { background-color: var(--placeholder-bg); } 50% { background-color: rgba(100,116,139,0.2); } 100% { background-color: var(--placeholder-bg); } }
+    .dash-card-icon { font-size: 1.8rem; opacity: 0.6; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
+    .card-body { position: relative; }
+    #tmsPlayerListContainer .form-control { width: 80px; padding: 0.25rem 0.5rem; font-size: 0.9rem; text-align: center; }
+    #tmsPlayerListContainer .calculated-prize { font-weight: 600; color: var(--accent-color); min-width: 80px; text-align: center; }
+    #themeSettingsForm .color-input-group { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 6px; background-color: var(--primary-bg); margin-bottom: 10px; }
+    #themeSettingsForm .color-input-group label { flex-grow: 1; margin-bottom: 0; font-size: 0.9rem; color: var(--text-secondary); }
+    #themeSettingsForm input[type="color"] { -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 40px; height: 40px; background-color: transparent; border: 1px solid var(--border-color); border-radius: 50%; cursor: pointer; }
+    #themeSettingsForm input[type="color"]::-webkit-color-swatch { border-radius: 50%; border: none; }
+    #themeSettingsForm input[type="color"]::-moz-color-swatch { border-radius: 50%; border: none; }
+    .theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .theme-actions { display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1.5rem; }
+    .sub-section-card { background-color: var(--primary-bg); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); }
+    .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px; max-height: 50vh; overflow-y: auto; padding: 5px; }
+    .slot-btn { background-color: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .slot-btn:hover:not(:disabled) { background-color: var(--primary-bg); border-color: var(--accent-color); }
+    .slot-btn:disabled { background-color: var(--danger-color); color: var(--text-primary); opacity: 0.7; cursor: not-allowed; }
+    .slot-btn.selected { background-color: var(--accent-color); border-color: var(--accent-color); color: var(--primary-bg); transform: scale(1.1); box-shadow: 0 0 10px var(--accent-color); }
+    .contest-status-nav { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
+    .contest-status-btn { flex: 1; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 5px; color: var(--text-primary); text-align: center; text-decoration: none; transition: all 0.2s ease; }
+    .contest-status-btn:hover { transform: translateY(-3px); border-color: var(--accent-color); box-shadow: 0 0 8px rgba(250,204,21,0.3); }
+    .contest-status-btn i { font-size: 1.5rem; display: block; margin-bottom: 5px; color: var(--accent-color); }
+    .contest-status-btn span { font-weight: 500; font-size: 0.8rem; }
+    .referral-code { font-family: monospace; letter-spacing: 1px; user-select: all; }
+    .copy-btn { cursor: pointer; }
+    .wallet-card { background: linear-gradient(145deg, #1e293b, #0f172a); border-radius: 15px; padding: 20px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
+    .wallet-card::before { content: ''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(250,204,21,0.05); border-radius: 50%; }
+    .wallet-header { text-align: center; margin-bottom: 25px; }
+    .wallet-header .balance-label { font-size: 0.9rem; color: var(--text-secondary); }
+    .wallet-header .total-balance { font-size: 2.5rem; font-weight: 700; color: var(--text-primary); letter-spacing: 1px; }
+    .wallet-breakdown { display: flex; justify-content: space-around; margin-bottom: 25px; padding: 15px 0; background: rgba(0,0,0,0.2); border-radius: 10px; }
+    .breakdown-item { text-align: center; }
+    .breakdown-item .amount { font-weight: 600; font-size: 1.1rem; }
+    .breakdown-item .label { font-size: 0.8rem; color: var(--text-secondary); }
+    .wallet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .wallet-actions .btn-action { padding: 12px; font-size: 1rem; font-weight: 600; }
+    .btn-action.btn-add-money { background-color: var(--success-color); color: white; }
+    .btn-action.btn-withdraw-money { background-color: var(--primary-button-bg); color: white; }
+    .transactions-link { text-align: center; margin-top: 20px; }
+    .transactions-link a { color: var(--accent-color); font-weight: 500; }
+    .vertical-stepper { position: relative; padding-left: 40px; margin-bottom: 20px; }
+    .vertical-stepper::before { content: ''; position: absolute; left: 14px; top: 5px; bottom: 5px; width: 2px; background-color: var(--danger-color); }
+    .vertical-stepper .step-icon { position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; background-color: var(--danger-color); color: white; display: flex; align-items: center; justify-content: center; }
+    .step-content h5 { font-size: 1rem; font-weight: 600; margin-bottom: 5px; }
+    .step-content p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px; }
+    .step-content .form-control { background-color: var(--secondary-bg); }
+    .file-upload-wrapper { position: relative; background-color: var(--secondary-bg); border: 2px dashed var(--border-color); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+    .file-upload-wrapper:hover { border-color: var(--accent-color); }
+    .file-upload-wrapper input[type="file"] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .file-upload-wrapper .file-upload-text { color: var(--text-secondary); }
+    .file-upload-wrapper .file-upload-text i { font-size: 2rem; display: block; margin-bottom: 10px; }
+    .payment-option-card { background-color: var(--primary-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border-color 0.2s; margin-bottom: 15px; }
+    .payment-option-card.selected { border-color: var(--accent-color); }
+    .payment-option-card img { height: 25px; max-width: 80px; object-fit: contain; }
+    .payment-option-card .form-check-input { float: right; margin-left: 10px; background-color: var(--secondary-bg); border-color: var(--border-color); box-shadow: none; }
+    .payment-option-card .form-check-input:checked { background-color: var(--accent-color); border-color: var(--accent-color); }
+    .payment-details-card { background-color: var(--primary-bg); border-radius: 8px; padding: 15px; border: 1px solid var(--border-color); }
+    .payment-details-card .qr-code-container { width: 150px; height: 150px; padding: 8px; background: white; border-radius: 8px; }
+    .payment-details-card .qr-code-container img { width: 100%; height: 100%; object-fit: contain; border-radius: 4px; }
+
     /* ====== Password Overlay ====== */
     #passwordOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -112,18 +233,6 @@
     .log-empty { color: var(--text-secondary); text-align: center; padding: 40px; }
     .log-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
     .log-controls .btn-sm { font-size: 0.8rem; }
-
-    /* Keep all other styles from previous admin.html */
-    /* ... (I'm including the full style block from the previous version) ... */
-    /* To save space, I'll not repeat the entire 400+ lines here – you already have them.
-       In this final code, I'll embed the full CSS block as it was in the previous admin.html.
-       I'm doing this because this is a command and you asked for "whole code". */
-  </style>
-
-  <!-- Full CSS from previous admin.html (included in the actual file) -->
-  <style>
-    /* ====== All styles from previous admin.html – included verbatim ====== */
-    /* ... (I'm placing all the CSS here in the actual code) ... */
   </style>
 </head>
 <body>
@@ -143,9 +252,42 @@
   <!-- ====== LOADER ====== -->
   <div id="adminLoader"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>
 
-  <!-- ====== AUTH CONTAINER (original Supabase login) ====== -->
-  <div id="auth-container" style="display:none;">
-    <!-- same as before – keep the setup and login forms -->
+  <!-- ====== AUTH CONTAINER (Login / Setup) ====== -->
+  <div id="auth-container" style="display: none;">
+    <!-- Admin Setup -->
+    <div id="admin-setup-section" style="display: none;">
+      <div class="container login-container">
+        <div class="card shadow">
+          <div class="card-body p-4">
+            <h2 class="card-title text-center mb-4">Admin Account Setup</h2>
+            <p class="text-muted text-center small mb-3">Create the primary admin account.</p>
+            <form id="adminSetupForm">
+              <div class="mb-3"><label for="setupEmail" class="form-label">Admin Email</label><input type="email" class="form-control" id="setupEmail" required></div>
+              <div class="mb-3"><label for="setupPassword" class="form-label">Admin Password (min 6 chars)</label><input type="password" class="form-control" id="setupPassword" required minlength="6"></div>
+              <div id="adminSetupStatus" class="mt-3"></div>
+              <div class="d-grid"><button type="submit" class="btn btn-success">Create Admin Account</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Login -->
+    <div id="admin-login-section" style="display: none;">
+      <div class="container login-container">
+        <div class="card shadow">
+          <div class="card-body p-4">
+            <h2 class="card-title text-center mb-4">Admin Login</h2>
+            <form id="adminLoginForm">
+              <div class="mb-3"><label for="adminEmail" class="form-label">Email</label><input type="email" class="form-control" id="adminEmail" required></div>
+              <div class="mb-3"><label for="adminPassword" class="form-label">Password</label><input type="password" class="form-control" id="adminPassword" required></div>
+              <div id="adminLoginStatus" class="mt-3"></div>
+              <div class="d-grid"><button type="submit" class="btn btn-primary">Login</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ====== MAIN ADMIN AREA ====== -->
@@ -163,7 +305,7 @@
       </div>
     </header>
 
-    <!-- Sidebar (same) -->
+    <!-- Sidebar -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="adminSidebar">
       <div class="offcanvas-header"><h5 class="offcanvas-title">Admin Menu</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button></div>
       <div class="offcanvas-body">
@@ -192,41 +334,539 @@
       </div>
     </div>
 
-    <!-- ====== ALL SECTIONS – identical to previous admin.html ====== -->
-    <!-- I will not repeat them here for brevity; but in the final code I include the full sections.
-         They are exactly as in the previous admin.html (Dashboard, Games, Promotions, Tournaments, etc.) -->
-    <!-- In the actual file, I will paste the entire main content from the previous admin.html -->
-    <!-- For this response, I'll place a placeholder comment, but the final code will have everything. -->
+    <!-- ====== ALL SECTIONS ====== -->
+    <!-- Dashboard -->
+    <section id="dashboard-section" class="section active">
+      <h2>Dashboard Overview</h2>
+      <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4"><div class="card text-bg-primary shadow-sm h-100"><div class="card-body"><h5 class="card-title">Total Users</h5><p class="card-text fs-3 fw-bold mb-0" id="statTotalUsers">--</p><i class="bi bi-people-fill dash-card-icon"></i></div></div></div>
+        <div class="col-lg-3 col-md-6 mb-4"><div class="card text-bg-info shadow-sm h-100"><div class="card-body"><h5 class="card-title">Active/Upcoming Tournaments</h5><p class="card-text fs-3 fw-bold mb-0" id="statActiveTournaments">--</p><i class="bi bi-trophy-fill dash-card-icon"></i></div></div></div>
+        <div class="col-lg-3 col-md-6 mb-4"><div class="card text-bg-warning shadow-sm h-100"><div class="card-body"><h5 class="card-title">Pending Withdrawals</h5><p class="card-text fs-3 fw-bold mb-0" id="statPendingWithdrawals">--</p><i class="bi bi-hourglass-split dash-card-icon"></i></div></div></div>
+        <div class="col-lg-3 col-md-6 mb-4"><div class="card text-bg-success shadow-sm h-100"><div class="card-body"><h5 class="card-title">Completed Withdrawals</h5><p class="card-text fs-3 fw-bold mb-0" id="statCompletedWithdrawals">--</p><i class="bi bi-check-circle-fill dash-card-icon"></i></div></div></div>
+        <div class="col-lg-3 col-md-6 mb-4"><div class="card text-bg-dark shadow-sm h-100"><div class="card-body"><h5 class="card-title">Rejected Withdrawals</h5><p class="card-text fs-3 fw-bold mb-0" id="statRejectedWithdrawals">--</p><i class="bi bi-x-octagon-fill dash-card-icon"></i></div></div></div>
+        <div class="col-lg-3 col-md-6 mb-4"><div class="card text-bg-secondary shadow-sm h-100"><div class="card-body"><h5 class="card-title">Total Games</h5><p class="card-text fs-3 fw-bold mb-0" id="statTotalGames">--</p><i class="bi bi-controller dash-card-icon"></i></div></div></div>
+        <div class="col-lg-3 col-md-6 mb-4"><div class="card text-bg-secondary shadow-sm h-100"><div class="card-body"><h5 class="card-title">Total Promotions</h5><p class="card-text fs-3 fw-bold mb-0" id="statTotalPromotions">--</p><i class="bi bi-images dash-card-icon"></i></div></div></div>
+        <div class="col-lg-3 col-md-6 mb-4"><div class="card text-bg-secondary shadow-sm h-100"><div class="card-body"><h5 class="card-title">Finished Tournaments</h5><p class="card-text fs-3 fw-bold mb-0" id="statFinishedTournaments">--</p><i class="bi bi-flag-fill dash-card-icon"></i></div></div></div>
+      </div>
+      <div id="dashboardStatus"></div>
+      <div class="row"><div class="col-12"><div class="card"><div class="card-body"><h5 class="card-title">New User Signups (Last 7 Days)</h5><canvas id="newUserChart"></canvas></div></div></div></div>
+    </section>
 
-    <!-- ====== LOGS MODAL ====== -->
-    <div class="modal fade logs-modal" id="logsModal" tabindex="-1">
-      <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title"><i class="bi bi-file-text me-2"></i>System Logs</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="log-controls">
-              <button class="btn btn-sm btn-outline-secondary" id="clearLogsBtn"><i class="bi bi-trash"></i> Clear All</button>
-              <button class="btn btn-sm btn-outline-secondary" id="exportLogsBtn"><i class="bi bi-download"></i> Export</button>
-            </div>
-            <div id="logsContainer">
-              <!-- Log entries will be rendered here -->
-              <div class="log-empty">No logs recorded yet.</div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
+    <!-- Games -->
+    <section id="games-section" class="section">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2>Manage Games</h2>
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#gameModal" id="addNewGameBtn"><i class="bi bi-plus-circle"></i> Add Game</button>
+      </div>
+      <div id="gamesStatus" class="mb-3"></div>
+      <div class="table-responsive card">
+        <table class="table table-dark table-hover mb-0"><thead><tr><th>Image</th><th>Name</th><th>Game ID</th><th>Actions</th></tr></thead><tbody id="gamesTableBody"></tbody></table>
+      </div>
+    </section>
+
+    <!-- Promotions -->
+    <section id="promotions-section" class="section">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2>Manage Promotions</h2>
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#promotionModal" id="addNewPromotionBtn"><i class="bi bi-plus-circle"></i> Add Promotion</button>
+      </div>
+      <div id="promotionsStatus" class="mb-3"></div>
+      <div class="table-responsive card">
+        <table class="table table-dark table-hover mb-0"><thead><tr><th>Image</th><th>Link</th><th>Status</th><th>Actions</th></tr></thead><tbody id="promotionsTableBody"></tbody></table>
+      </div>
+    </section>
+
+    <!-- Tournaments -->
+    <section id="tournaments-section" class="section">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2>Manage Tournaments</h2>
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addTournamentModal" id="addNewTournamentBtn"><i class="bi bi-plus-circle"></i> Add Tournament</button>
+      </div>
+      <div id="tournamentsStatus" class="mb-3"></div>
+      <div class="table-responsive card">
+        <table class="table table-dark table-hover mb-0"><thead><tr><th>Name</th><th>Game</th><th>Mode</th><th>Fee</th><th>Prize</th><th>Slots</th><th>Registered</th><th>Profit</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tournamentsTableBody"></tbody></table>
+      </div>
+    </section>
+
+    <!-- Tournament Management -->
+    <section id="tournament-management-section" class="section">
+      <h2>Tournament Prize Management</h2>
+      <div class="card"><div class="card-body">
+        <div class="row align-items-end mb-3"><div class="col-md-6"><label for="tmsTournamentSelect" class="form-label">Select Tournament</label><select class="form-select" id="tmsTournamentSelect"><option value="">-- Loading --</option></select></div></div>
+        <div id="tmsStatus" class="mb-3"></div>
+        <div id="tmsPlayerListContainer" style="display: none;">
+          <div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Player</th><th>Game UID</th><th>Per Kill</th><th>Kills</th><th>Extra</th><th>Rank</th><th>Calculated Prize</th></tr></thead><tbody id="tmsPlayerListTableBody"></tbody></table></div>
+          <div class="mt-4 text-end"><button class="btn btn-success btn-lg" id="creditWinningsBtn"><i class="bi bi-check-circle-fill"></i> Credit All Winnings</button></div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- Leaderboard Management -->
+    <section id="leaderboard-mgt-section" class="section">
+      <h2>Leaderboard Management</h2>
+      <div class="card"><div class="card-body">
+        <p class="text-secondary">Set rank and display earnings. Leave blank to remove.</p>
+        <div id="leaderboardMgtStatus" class="mb-3"></div>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <input type="search" class="form-control form-control-sm" style="max-width: 300px;" id="leaderboardUserSearchInput" placeholder="Search users...">
+          <button class="btn btn-primary" id="saveLeaderboardBtn"><i class="bi bi-save"></i> Save Changes</button>
+        </div>
+        <div class="table-responsive"><table class="table table-dark table-hover"><thead><tr><th>User</th><th>Rank</th><th>Display Earnings (₹)</th></tr></thead><tbody id="leaderboardMgtTableBody"></tbody></table></div>
+      </div></div>
+    </section>
+
+    <!-- Users -->
+    <section id="users-section" class="section">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2>Manage Users</h2>
+        <div class="d-flex gap-2 flex-wrap">
+          <input type="search" class="form-control form-control-sm" id="userSearchInput" placeholder="Search..." style="max-width: 250px;">
+          <button class="btn btn-primary btn-sm flex-shrink-0" id="downloadUsersPdfBtn"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
+          <button class="btn btn-info btn-sm flex-shrink-0" id="sendToSelectedUsersBtn" data-bs-toggle="modal" data-bs-target="#selectiveNotificationModal" disabled><i class="bi bi-send"></i> Send to Selected</button>
+          <button class="btn btn-success btn-sm flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-person-plus-fill"></i> Add User</button>
         </div>
       </div>
-    </div>
+      <div id="usersStatus" class="mb-3"></div>
+      <div class="table-responsive card">
+        <table class="table table-dark table-hover mb-0">
+          <thead><tr><th><input type="checkbox" class="form-check-input" id="selectAllUsersCheckbox"></th><th>UID</th><th>Display Name</th><th>Email</th><th>Balance</th><th>FF UID</th><th>Clan</th><th>Verified</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
+    </section>
 
+    <!-- Balance Editor -->
+    <section id="balance-editor-section" class="section">
+      <h2>User Balance Editor</h2>
+      <div class="card"><div class="card-body">
+        <form id="balanceEditorForm">
+          <div class="mb-3"><label for="balanceEditorUserId" class="form-label">User ID (UID)</label><input type="text" class="form-control" id="balanceEditorUserId" placeholder="Enter user UID" required></div>
+          <div class="mb-3"><label for="balanceEditorAmount" class="form-label">Amount (+/-)</label><input type="number" step="any" class="form-control" id="balanceEditorAmount" required></div>
+          <div class="mb-3"><label for="balanceEditorReason" class="form-label">Reason</label><input type="text" class="form-control" id="balanceEditorReason" placeholder="e.g., Manual adjustment" required></div>
+          <button type="submit" class="btn btn-primary">Update Balance</button>
+          <div id="balanceEditorStatus" class="mt-3"></div>
+        </form>
+      </div></div>
+    </section>
+
+    <!-- User Analytics -->
+    <section id="user-analytics-section" class="section">
+      <h2>User Analytics</h2>
+      <div class="row">
+        <div class="col-lg-4 mb-4"><div class="card h-100"><div class="card-body"><h5 class="card-title">Top 10 Spenders</h5><div id="topSpendersContainer"><p class="text-secondary">Loading...</p></div></div></div></div>
+        <div class="col-lg-4 mb-4"><div class="card h-100"><div class="card-body"><h5 class="card-title">Top 10 Active Players</h5><div id="mostActiveContainer"><p class="text-secondary">Loading...</p></div></div></div></div>
+        <div class="col-lg-4 mb-4"><div class="card h-100"><div class="card-body"><h5 class="card-title">Inactive Users (> 15 days)</h5><div id="inactiveUsersContainer"><p class="text-secondary">Loading...</p></div></div></div></div>
+      </div>
+    </section>
+
+    <!-- Notifications -->
+    <section id="notifications-section" class="section">
+      <h2>Send Notifications</h2>
+      <div class="card mb-4"><div class="card-body">
+        <h5 class="card-title">Send Global Notification</h5>
+        <form id="globalNotificationForm">
+          <div class="mb-3"><label for="globalNotifTitle" class="form-label">Title</label><input type="text" class="form-control" id="globalNotifTitle" required></div>
+          <div class="mb-3"><label for="globalNotifMessage" class="form-label">Message</label><textarea class="form-control" id="globalNotifMessage" rows="3" required></textarea></div>
+          <div class="mb-3"><label for="globalNotifImageUrl" class="form-label">Image URL (Optional)</label><input type="url" class="form-control" id="globalNotifImageUrl" placeholder="https://example.com/image.png"></div>
+          <button type="submit" class="btn btn-primary">Send to All</button>
+          <div id="globalNotificationStatus" class="mt-3"></div>
+        </form>
+      </div></div>
+      <div class="card"><div class="card-body"><h5 class="card-title">Notification History</h5><div id="globalNotificationsHistory" class="table-responsive"><p class="text-muted">Loading...</p></div></div></div>
+    </section>
+
+    <!-- Transactions (placeholder) -->
+    <section id="transactions-section" class="section card"><div class="card-body"><h2 class="card-title">User Transactions</h2><p class="text-muted">Section under development.</p></div></section>
+
+    <!-- Withdrawals -->
+    <section id="withdrawals-section" class="section">
+      <h2>Manage Withdrawals</h2>
+      <div id="withdrawalsStatus" class="mb-3"></div>
+      <div class="card">
+        <div class="card-header bg-secondary border-bottom border-dark">
+          <ul class="nav nav-tabs card-header-tabs" id="withdrawalTabs" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pendingWithdrawalsTab" type="button" role="tab">Pending</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completedWithdrawalsTab" type="button" role="tab">Completed</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejectedWithdrawalsTab" type="button" role="tab">Rejected</button></li>
+          </ul>
+        </div>
+        <div class="card-body tab-content p-0">
+          <div class="tab-pane fade show active" id="pendingWithdrawalsTab" role="tabpanel"><div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Requested At</th><th>User</th><th>Amount</th><th>Method</th><th>Actions</th></tr></thead><tbody id="pendingWithdrawalsTableBody"></tbody></table></div></div>
+          <div class="tab-pane fade" id="completedWithdrawalsTab" role="tabpanel"><div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Requested At</th><th>Processed At</th><th>User</th><th>Amount</th><th>Method</th><th>Admin Note</th></tr></thead><tbody id="completedWithdrawalsTableBody"></tbody></table></div></div>
+          <div class="tab-pane fade" id="rejectedWithdrawalsTab" role="tabpanel"><div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Requested At</th><th>Processed At</th><th>User</th><th>Amount</th><th>Method</th><th>Reason</th></tr></thead><tbody id="rejectedWithdrawalsTableBody"></tbody></table></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deposits -->
+    <section id="deposit-section" class="section">
+      <h2>Manage Deposits</h2>
+      <div id="depositsStatus" class="mb-3"></div>
+      <div class="card">
+        <div class="card-header bg-secondary border-bottom border-dark">
+          <ul class="nav nav-tabs card-header-tabs" id="depositTabs" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="pending-deposits-tab" data-bs-toggle="tab" data-bs-target="#pendingDepositsTab" type="button" role="tab">Pending</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="completed-deposits-tab" data-bs-toggle="tab" data-bs-target="#completedDepositsTab" type="button" role="tab">Completed</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="rejected-deposits-tab" data-bs-toggle="tab" data-bs-target="#rejectedDepositsTab" type="button" role="tab">Rejected</button></li>
+          </ul>
+        </div>
+        <div class="card-body tab-content p-0">
+          <div class="tab-pane fade show active" id="pendingDepositsTab" role="tabpanel"><div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Requested At</th><th>User</th><th>Amount</th><th>UTR</th><th>Method</th><th>Action</th></tr></thead><tbody id="pendingDepositsTableBody"></tbody></table></div></div>
+          <div class="tab-pane fade" id="completedDepositsTab" role="tabpanel"><div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Requested At</th><th>Processed At</th><th>User</th><th>Amount</th><th>UTR</th><th>Method</th></tr></thead><tbody id="completedDepositsTableBody"></tbody></table></div></div>
+          <div class="tab-pane fade" id="rejectedDepositsTab" role="tabpanel"><div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Requested At</th><th>Processed At</th><th>User</th><th>Amount</th><th>UTR</th><th>Method</th></tr></thead><tbody id="rejectedDepositsTableBody"></tbody></table></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Referrals -->
+    <section id="referrals-section" class="section">
+      <h2>Manage Referrals</h2>
+      <div id="referralsStatus" class="mb-3"></div>
+      <div class="card">
+        <div class="card-header bg-secondary border-bottom border-dark">
+          <ul class="nav nav-tabs card-header-tabs" id="referralTabs" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="pending-referrals-tab" data-bs-toggle="tab" data-bs-target="#pendingReferralsTab" type="button" role="tab">Pending</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="completed-referrals-tab" data-bs-toggle="tab" data-bs-target="#completedReferralsTab" type="button" role="tab">Completed</button></li>
+          </ul>
+        </div>
+        <div class="card-body tab-content p-0">
+          <div class="tab-pane fade show active" id="pendingReferralsTab" role="tabpanel"><div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Date</th><th>Referrer</th><th>Referred User</th><th>Action</th></tr></thead><tbody id="pendingReferralsTableBody"></tbody></table></div></div>
+          <div class="tab-pane fade" id="completedReferralsTab" role="tabpanel"><div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Credited At</th><th>Referrer</th><th>Referred User</th><th>Bonus</th></tr></thead><tbody id="completedReferralsTableBody"></tbody></table></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Theme -->
+    <section id="theme-section" class="section">
+      <h2>Theme Customization</h2>
+      <div class="card"><div class="card-body">
+        <form id="themeSettingsForm">
+          <div id="themeStatus" class="mb-3"></div>
+          <h5 class="card-title">Preset Themes</h5>
+          <div class="mb-4 d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-secondary" id="presetBtnDefault">Default Dark</button>
+            <button type="button" class="btn btn-light" id="presetBtnLight">Professional Light</button>
+            <button type="button" class="btn btn-danger" id="presetBtnGamingRed">Gaming Red</button>
+          </div>
+          <h5 class="card-title">Custom Theme Colors</h5>
+          <p class="text-secondary small">Changes here will be reflected live. Click "Save Theme" to apply for all users.</p>
+          <div class="theme-grid">
+            <div>
+              <h6>Backgrounds & Cards</h6>
+              <div class="color-input-group"><label for="themePrimaryBg">Primary Background</label><input type="color" id="themePrimaryBg" data-theme-var="primary-bg"></div>
+              <div class="color-input-group"><label for="themeSecondaryBg">Secondary Background</label><input type="color" id="themeSecondaryBg" data-theme-var="secondary-bg"></div>
+              <div class="color-input-group"><label for="themeCardBg">Card Background</label><input type="color" id="themeCardBg" data-theme-var="card-bg"></div>
+              <div class="color-input-group"><label for="themeBorderColor">Border Color</label><input type="color" id="themeBorderColor" data-theme-var="border-color"></div>
+            </div>
+            <div>
+              <h6>Text</h6>
+              <div class="color-input-group"><label for="themeTextPrimary">Primary Text</label><input type="color" id="themeTextPrimary" data-theme-var="text-primary"></div>
+              <div class="color-input-group"><label for="themeTextSecondary">Secondary Text</label><input type="color" id="themeTextSecondary" data-theme-var="text-secondary"></div>
+            </div>
+            <div>
+              <h6>Accents & Buttons</h6>
+              <div class="color-input-group"><label for="themeAccentColor">Accent Color</label><input type="color" id="themeAccentColor" data-theme-var="accent-color"></div>
+              <div class="color-input-group"><label for="themePrimaryButtonBg">Primary Button BG</label><input type="color" id="themePrimaryButtonBg" data-theme-var="primary-button-bg"></div>
+            </div>
+            <div>
+              <h6>Status Colors</h6>
+              <div class="color-input-group"><label for="themeSuccessColor">Success</label><input type="color" id="themeSuccessColor" data-theme-var="success-color"></div>
+              <div class="color-input-group"><label for="themeDangerColor">Danger</label><input type="color" id="themeDangerColor" data-theme-var="danger-color"></div>
+              <div class="color-input-group"><label for="themeWarningColor">Warning</label><input type="color" id="themeWarningColor" data-theme-var="warning-color"></div>
+            </div>
+          </div>
+          <div class="theme-actions">
+            <button type="button" class="btn btn-primary btn-lg" id="saveThemeBtn"><i class="bi bi-save"></i> Save Theme</button>
+            <button type="button" class="btn btn-outline-danger" id="resetThemeBtn"><i class="bi bi-arrow-counterclockwise"></i> Reset to Default</button>
+          </div>
+        </form>
+      </div></div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings-section" class="section card">
+      <div class="card-body">
+        <h2 class="card-title">App Settings</h2>
+        <form id="appSettingsForm">
+          <div class="row">
+            <div class="col-md-6 mb-3"><label for="settingAppName" class="form-label">App Name</label><input type="text" class="form-control" id="settingAppName"></div>
+            <div class="col-md-6 mb-3"><label for="settingLogoUrl" class="form-label">App Logo URL</label><input type="url" class="form-control" id="settingLogoUrl"></div>
+            <div class="col-md-6 mb-3"><label for="settingSplashLogoUrl" class="form-label">Splash Logo URL</label><input type="url" class="form-control" id="settingSplashLogoUrl"></div>
+            <div class="col-md-6 mb-3"><label for="settingGameIconUrl" class="form-label">Default Game Icon URL</label><input type="url" class="form-control" id="settingGameIconUrl"></div>
+            <div class="col-md-4 mb-3"><label for="settingSignupBonus" class="form-label">Sign Up Bonus (₹)</label><input type="number" class="form-control" id="settingSignupBonus" min="0" step="any"></div>
+            <div class="col-md-4 mb-3"><label for="settingReferralBonus" class="form-label">Referral Bonus (₹)</label><input type="number" class="form-control" id="settingReferralBonus" min="0" step="any"></div>
+            <div class="col-md-4 mb-3"><label for="settingReferralPercent" class="form-label">Referral % of Spending</label><input type="number" class="form-control" id="settingReferralPercent" min="0" step="any"></div>
+            <div class="col-md-4 mb-3"><label for="settingMinWithdraw" class="form-label">Min Withdraw (₹)</label><input type="number" class="form-control" id="settingMinWithdraw" min="0" step="any"></div>
+            <div class="col-md-4 mb-3"><label for="settingSupportContact" class="form-label">Support Contact</label><input type="text" class="form-control" id="settingSupportContact"></div>
+            <div class="col-md-4 mb-3"><label for="settingDeveloperContact" class="form-label">Developer Contact</label><input type="text" class="form-control" id="settingDeveloperContact"></div>
+            <div class="col-md-6 mb-3"><label for="settingUpiDetails" class="form-label">UPI ID</label><input type="text" class="form-control" id="settingUpiDetails"></div>
+            <div class="col-md-6 mb-3"><label for="settingQrCodeUrl" class="form-label">QR Code URL</label><input type="url" class="form-control" id="settingQrCodeUrl"></div>
+            <div class="col-md-6 mb-3"><label for="settingTelegramLink" class="form-label">Telegram Link</label><input type="url" class="form-control" id="settingTelegramLink"></div>
+            <div class="col-md-6 mb-3"><label for="settingDiscordLink" class="form-label">Discord Link</label><input type="url" class="form-control" id="settingDiscordLink"></div>
+            <div class="col-md-6 mb-3"><label for="settingYoutubeLink" class="form-label">YouTube Link</label><input type="url" class="form-control" id="settingYoutubeLink"></div>
+            <div class="col-md-6 mb-3"><label for="settingInstagramLink" class="form-label">Instagram Link</label><input type="url" class="form-control" id="settingInstagramLink"></div>
+            <div class="col-md-6 mb-3"><label for="settingReferralShareLink" class="form-label">Referral Share Link</label><input type="url" class="form-control" id="settingReferralShareLink"></div>
+          </div>
+          <hr>
+          <h5 class="mt-4">App Update</h5>
+          <div class="sub-section-card mb-4">
+            <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" role="switch" id="settingIsUpdateAvailable"><label class="form-check-label" for="settingIsUpdateAvailable">Enable Force Update</label></div>
+            <div class="row">
+              <div class="col-md-6 mb-3"><label for="settingAppVersion" class="form-label">App Version</label><input type="text" class="form-control" id="settingAppVersion"></div>
+              <div class="col-md-6 mb-3"><label for="settingUpdateUrl" class="form-label">Update URL</label><input type="url" class="form-control" id="settingUpdateUrl"></div>
+              <div class="col-12 mb-3"><label for="settingUpdateMessage" class="form-label">Update Message</label><textarea class="form-control" id="settingUpdateMessage" rows="3"></textarea></div>
+            </div>
+          </div>
+          <hr>
+          <h5 class="mt-4">Announcement Bar</h5>
+          <div class="sub-section-card mb-4">
+            <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" role="switch" id="settingEnableAnnouncementBar"><label class="form-check-label" for="settingEnableAnnouncementBar">Enable Announcement Bar</label></div>
+            <div class="mb-3"><label for="settingAnnouncementText" class="form-label">Announcement Text (HTML allowed)</label><textarea class="form-control" id="settingAnnouncementText" rows="4"></textarea></div>
+          </div>
+          <hr>
+          <h5 class="mt-4">Policy Documents</h5>
+          <div class="row">
+            <div class="col-12 mb-3"><label for="settingPolicyPrivacy" class="form-label">Privacy Policy</label><textarea class="form-control" id="settingPolicyPrivacy" rows="5"></textarea></div>
+            <div class="col-12 mb-3"><label for="settingPolicyTerms" class="form-label">Terms & Conditions</label><textarea class="form-control" id="settingPolicyTerms" rows="5"></textarea></div>
+            <div class="col-12 mb-3"><label for="settingPolicyRefund" class="form-label">Refund Policy</label><textarea class="form-control" id="settingPolicyRefund" rows="5"></textarea></div>
+            <div class="col-12 mb-3"><label for="settingPolicyFairPlay" class="form-label">Fair Play Policy</label><textarea class="form-control" id="settingPolicyFairPlay" rows="5"></textarea></div>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save Settings</button>
+          <div id="settingsStatus" class="mt-3"></div>
+        </form>
+      </div>
+    </section>
   </div>
 
-  <!-- ====== MODALS (same as previous) ====== -->
-  <!-- Game, Promotion, Tournament, User, Withdrawal, etc. – all identical -->
+  <!-- ====== MODALS ====== -->
+  <!-- Game Modal -->
+  <div class="modal fade" id="gameModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="gameModalTitle">Add New Game</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <form id="gameForm">
+            <input type="hidden" id="gameEditId">
+            <div class="mb-3"><label for="gameName" class="form-label">Game Name</label><input type="text" class="form-control" id="gameName" required></div>
+            <div class="mb-3"><label for="gameImageUrl" class="form-label">Image URL</label><input type="url" class="form-control" id="gameImageUrl" required></div>
+            <div class="mb-3"><label for="gameImageFile" class="form-label">Upload New Image (Optional)</label><input class="form-control" type="file" id="gameImageFile" accept="image/*"><div class="imgbb-upload-status mt-2"></div></div>
+            <div id="gameStatus" class="mt-2"></div>
+          </form>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" id="saveGameBtn">Save Game</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Promotion Modal -->
+  <div class="modal fade" id="promotionModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="promotionModalTitle">Add New Promotion</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <form id="promotionForm">
+            <input type="hidden" id="promotionEditId">
+            <div class="mb-3"><label for="promoImageUrl" class="form-label">Image URL</label><input type="url" class="form-control" id="promoImageUrl" required></div>
+            <div class="mb-3"><label for="promoImageFile" class="form-label">Upload New Image (Optional)</label><input class="form-control" type="file" id="promoImageFile" accept="image/*"><div class="imgbb-upload-status mt-2"></div></div>
+            <div class="mb-3"><label for="promoLink" class="form-label">Link (Optional)</label><input type="url" class="form-control" id="promoLink"></div>
+            <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="promoEnabled" checked><label class="form-check-label" for="promoEnabled">Enabled</label></div>
+            <div id="promotionStatus" class="mt-2"></div>
+          </form>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" id="savePromotionBtn">Save Promotion</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tournament Modal -->
+  <div class="modal fade" id="addTournamentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="tournamentModalTitle">Add New Tournament</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <form id="tournamentForm">
+            <input type="hidden" id="tournamentEditId">
+            <div class="row">
+              <div class="col-md-6 mb-3"><label for="tournamentGame" class="form-label">Game</label><select class="form-select" id="tournamentGame" required></select></div>
+              <div class="col-md-6 mb-3"><label for="tournamentName" class="form-label">Tournament Name</label><input type="text" class="form-control" id="tournamentName" required></div>
+              <div class="col-md-6 mb-3"><label for="tournamentMode" class="form-label">Mode</label><select class="form-select" id="tournamentMode"><option value="Solo">Solo</option><option value="Duo">Duo</option><option value="Squad">Squad</option><option value="Custom">Custom</option></select></div>
+              <div class="col-md-6 mb-3" id="customModeContainer" style="display:none;"><label for="tournamentCustomMode" class="form-label">Custom Mode Name</label><input type="text" class="form-control" id="tournamentCustomMode" placeholder="e.g., 3v3"></div>
+              <div class="col-md-4 mb-3"><label for="tournamentEntryFee" class="form-label">Entry Fee (₹)</label><input type="number" class="form-control" id="tournamentEntryFee" min="0" value="0" required step="any"></div>
+              <div class="col-md-4 mb-3"><label for="tournamentPrizePool" class="form-label">Prize Pool (₹)</label><input type="number" class="form-control" id="tournamentPrizePool" min="0" value="0" step="any"></div>
+              <div class="col-md-4 mb-3"><label for="tournamentMaxPlayers" class="form-label">Max Players (0 for unlimited)</label><input type="number" class="form-control" id="tournamentMaxPlayers" min="0" value="0" required></div>
+              <div class="col-md-6 mb-3"><label for="tournamentStartTime" class="form-label">Start Date & Time</label><input type="datetime-local" class="form-control" id="tournamentStartTime" required></div>
+              <div class="col-md-6 mb-3"><label for="tournamentStatus" class="form-label">Status</label><select class="form-select" id="tournamentStatus" required><option value="upcoming">Upcoming</option><option value="ongoing">Ongoing</option><option value="completed">Completed</option><option value="result">Result</option><option value="cancelled">Cancelled</option></select></div>
+              <div class="col-12 mb-3"><label for="tournamentBannerUrl" class="form-label">Banner URL (16:9)</label><input type="url" class="form-control" id="tournamentBannerUrl" placeholder="https://example.com/banner.jpg"></div>
+              <div class="col-12 mb-3"><label for="tournamentDescription" class="form-label">Description / Rules</label><textarea class="form-control" id="tournamentDescription" rows="4"></textarea></div>
+              <div class="col-md-6 mb-3"><label for="tournamentRoomId" class="form-label">Room ID</label><input type="text" class="form-control" id="tournamentRoomId"></div>
+              <div class="col-md-6 mb-3"><label for="tournamentRoomPassword" class="form-label">Room Password</label><input type="text" class="form-control" id="tournamentRoomPassword"></div>
+              <div class="col-md-6 mb-3 d-flex align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="tournamentShowIdPass"><label class="form-check-label ms-2" for="tournamentShowIdPass">Show ID/Pass to Users?</label></div></div>
+              <div class="col-md-6 mb-3 d-flex align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="tournamentRegistrationOpen" checked><label class="form-check-label ms-2" for="tournamentRegistrationOpen">Registration Open?</label></div></div>
+              <div class="col-12 mb-3"><div class="alert alert-info" id="profitMarginDisplay"><strong>Expected Profit:</strong> ₹<span id="profitMarginValue">0</span> (if all slots filled)</div></div>
+            </div>
+            <div id="addTournamentStatus" class="mt-2"></div>
+          </form>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" id="saveTournamentBtn">Save Tournament</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Modal -->
+  <div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="userModalTitle">User Details</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h5>User Info</h5>
+              <p><strong>UID:</strong> <small id="userDetailUid" class="text-muted user-uid-copy"></small> <i class="bi bi-clipboard copy-btn ms-1" data-target="#userDetailUid" title="Copy UID"></i></p>
+              <p><strong>Email:</strong> <span id="userDetailEmail"></span></p>
+              <form id="updateUserInfoForm" class="mb-3">
+                <div class="mb-2"><label for="userDetailNameInput" class="form-label">Display Name</label><input type="text" id="userDetailNameInput" class="form-control form-control-sm"></div>
+                <div class="mb-2"><label for="userDetailPhoneInput" class="form-label">Phone Number</label><input type="text" id="userDetailPhoneInput" class="form-control form-control-sm"></div>
+                <button type="submit" class="btn btn-sm btn-primary">Save Info</button>
+                <div id="updateUserInfoStatus" class="mt-2"></div>
+              </form>
+              <p><strong>FF UID:</strong> <span id="userDetailFfUid"></span></p>
+              <p><strong>Clan:</strong> <span id="userDetailClan"></span></p>
+              <p><strong>Verified:</strong> <span id="userDetailVerified"></span></p>
+              <p><strong>Created At:</strong> <span id="userDetailCreatedAt">N/A</span></p>
+              <hr>
+              <h5>Wallet</h5>
+              <p>Total: ₹ <span id="userDetailBalance">0.00</span></p>
+              <p>Winnings: ₹ <span id="userDetailWinning">0.00</span></p>
+              <p>Bonus: ₹ <span id="userDetailBonus">0.00</span></p>
+              <hr>
+              <h5>Referral</h5>
+              <p><strong>Code:</strong> <span id="userDetailReferralCode" class="text-info"></span> <i class="bi bi-clipboard copy-btn ms-1" data-target="#userDetailReferralCode" title="Copy Code"></i></p>
+              <p><strong>Referred By:</strong> <span id="userDetailReferredBy">N/A</span></p>
+              <p><strong>Users Referred:</strong> <span id="userDetailReferredCount">N/A</span></p>
+            </div>
+            <div class="col-md-6">
+              <h5>Update Balance</h5>
+              <form id="updateBalanceForm">
+                <input type="hidden" id="editUserUid">
+                <div class="row">
+                  <div class="col-md-6 mb-3"><label for="balanceUpdateAmount" class="form-label">Amount (+/-)</label><input type="number" step="any" class="form-control" id="balanceUpdateAmount" required></div>
+                  <div class="col-md-6 mb-3"><label for="balanceUpdateType" class="form-label">Balance Type</label><select id="balanceUpdateType" class="form-select" required><option value="">--Select--</option><option value="balance">Total Balance</option><option value="winningCash">Winning Cash</option><option value="bonusCash">Bonus Cash</option></select></div>
+                </div>
+                <div class="mb-3"><label for="balanceUpdateReason" class="form-label">Reason</label><input type="text" class="form-control" id="balanceUpdateReason" required></div>
+                <button type="submit" class="btn btn-warning">Update Balance</button>
+                <div id="balanceUpdateStatus" class="mt-2"></div>
+              </form>
+              <hr>
+              <h5>Actions</h5>
+              <p>Status: <span id="userDetailStatus" class="fw-bold"></span></p>
+              <button class="btn btn-sm mb-2" id="userBlockBtn"></button>
+              <button class="btn btn-sm btn-danger mb-2" id="userDeleteBtn"><i class="bi bi-trash"></i> Delete User</button>
+              <hr>
+              <h5>Send Notification</h5>
+              <form id="individualNotificationForm">
+                <div class="mb-2"><label for="individualNotifTitle" class="form-label">Title</label><input type="text" class="form-control form-control-sm" id="individualNotifTitle" required></div>
+                <div class="mb-2"><label for="individualNotifMessage" class="form-label">Message</label><textarea class="form-control form-control-sm" id="individualNotifMessage" rows="2" required></textarea></div>
+                <div class="mb-2"><label for="individualNotifImageUrl" class="form-label">Image URL (Optional)</label><input type="url" class="form-control form-control-sm" id="individualNotifImageUrl"></div>
+                <button type="submit" class="btn btn-info btn-sm">Send to this User</button>
+                <div id="individualNotificationStatus" class="mt-2"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Add New User</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <form id="addUserForm">
+            <div class="mb-3"><label for="newUserName" class="form-label">Display Name</label><input type="text" class="form-control" id="newUserName" required></div>
+            <div class="mb-3"><label for="newUserEmail" class="form-label">Email</label><input type="email" class="form-control" id="newUserEmail" required></div>
+            <div class="mb-3"><label for="newUserPassword" class="form-label">Password (min 6)</label><input type="password" class="form-control" id="newUserPassword" required minlength="6"></div>
+            <div class="mb-3"><label for="newUserInitialBalance" class="form-label">Initial Balance (₹)</label><input type="number" step="any" class="form-control" id="newUserInitialBalance" value="0"></div>
+            <div id="addUserStatus" class="mt-2"></div>
+          </form>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" id="saveNewUserBtn">Create User</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdrawal Action Modal -->
+  <div class="modal fade" id="withdrawalActionModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Withdrawal Action</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <p><strong>Request ID:</strong> <small id="withdrawalDetailId" class="text-muted"></small> <i class="bi bi-clipboard copy-btn ms-1" data-target="#withdrawalDetailId" title="Copy ID"></i></p>
+          <p><strong>User:</strong> <span id="withdrawalDetailUser"></span></p>
+          <p><strong>Amount:</strong> ₹ <span id="withdrawalDetailAmount"></span></p>
+          <p><strong>Method:</strong> <span id="withdrawalDetailMethod"></span></p>
+          <hr>
+          <div id="withdrawalRejectReasonDiv" style="display: none;"><label for="withdrawalRejectReason" class="form-label">Rejection Reason</label><textarea class="form-control" id="withdrawalRejectReason" rows="3" required></textarea></div>
+          <div id="withdrawalApproveNoteDiv" style="display: none;"><label for="withdrawalApproveNote" class="form-label">Admin Note (optional)</label><input type="text" class="form-control" id="withdrawalApproveNote"></div>
+          <div id="withdrawalActionStatus" class="mt-2"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-danger" id="rejectWithdrawalBtn">Reject</button><button type="button" class="btn btn-success" id="approveWithdrawalBtn">Approve</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Registered Players Modal -->
+  <div class="modal fade" id="registeredPlayersModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="registeredPlayersModalTitle">Registered Players</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <p>Tournament: <strong id="registeredPlayersTournamentName"></strong></p>
+          <div id="registeredPlayersStatus" class="mb-2"></div>
+          <div class="table-responsive"><table class="table table-dark table-sm table-hover"><thead><tr><th>Registered By</th><th>Player 1 (Self)</th><th>Player 2 (Teammate)</th><th>Joined At</th></tr></thead><tbody id="registeredPlayersTableBody"></tbody></table></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary" id="downloadPlayersPdfBtn"><i class="bi bi-file-earmark-pdf-fill"></i> Download PDF</button><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selective Notification Modal -->
+  <div class="modal fade" id="selectiveNotificationModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Send Notification to Selected Users</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <p>You are about to send to <strong id="selectedUserCount">0</strong> user(s).</p>
+          <form id="selectiveNotificationForm">
+            <div class="mb-3"><label for="selectiveNotifTitle" class="form-label">Title</label><input type="text" class="form-control" id="selectiveNotifTitle" required></div>
+            <div class="mb-3"><label for="selectiveNotifMessage" class="form-label">Message</label><textarea class="form-control" id="selectiveNotifMessage" rows="3" required></textarea></div>
+            <div class="mb-3"><label for="selectiveNotifImageUrl" class="form-label">Image URL</label><input type="url" class="form-control" id="selectiveNotifImageUrl"></div>
+            <div id="selectiveNotificationStatus" class="mt-2"></div>
+          </form>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="sendSelectiveNotificationBtn">Send Notification</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== LOGS MODAL ====== -->
+  <div class="modal fade logs-modal" id="logsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-file-text me-2"></i>System Logs</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="log-controls">
+            <button class="btn btn-sm btn-outline-secondary" id="clearLogsBtn"><i class="bi bi-trash"></i> Clear All</button>
+            <button class="btn btn-sm btn-outline-secondary" id="exportLogsBtn"><i class="bi bi-download"></i> Export</button>
+          </div>
+          <div id="logsContainer"><div class="log-empty">No logs recorded yet.</div></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+      </div>
+    </div>
+  </div>
 
   <!-- ====== SCRIPTS ====== -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -236,10 +876,10 @@
 
   <script>
     // ================================================================
-    // POPPY ESPORTS – Admin with Password Protection & Logs
+    // POPPY ESPORTS – Full Admin with Password + Logs + Supabase Auth
     // ================================================================
 
-    // ----- PASSWORD PROTECTION -----
+    // ----- PASSWORD -----
     const PASSWORD = 'infected';
     let isAuthorized = false;
 
@@ -253,10 +893,7 @@
       if (entered === PASSWORD) {
         isAuthorized = true;
         overlay.classList.add('hidden');
-        document.getElementById('admin-main-area').style.display = 'block';
-        // Initialize the admin panel (load settings, etc.)
         initializeAdmin();
-        // Log successful unlock
         addLog('info', 'Admin panel unlocked successfully.');
       } else {
         passwordError.textContent = '❌ Incorrect password. Try again.';
@@ -269,88 +906,46 @@
     passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryUnlock(); });
     unlockBtn.addEventListener('click', tryUnlock);
 
-    // Initially hide main area until authorized
-    document.getElementById('admin-main-area').style.display = 'none';
-
     // ----- LOGS SYSTEM -----
     const logs = [];
-
     function addLog(level, message) {
-      const entry = {
-        timestamp: new Date().toISOString(),
-        level: level, // 'info', 'success', 'warning', 'error'
-        message: message
-      };
+      const entry = { timestamp: new Date().toISOString(), level, message };
       logs.push(entry);
-      // Keep only last 500 logs to avoid memory bloat
       if (logs.length > 500) logs.shift();
-      // If logs modal is open, refresh view
-      if (document.getElementById('logsModal').classList.contains('show')) {
-        renderLogs();
-      }
+      if (document.getElementById('logsModal').classList.contains('show')) renderLogs();
     }
-
     function renderLogs() {
       const container = document.getElementById('logsContainer');
-      if (logs.length === 0) {
-        container.innerHTML = '<div class="log-empty">No logs recorded yet.</div>';
-        return;
-      }
+      if (logs.length === 0) { container.innerHTML = '<div class="log-empty">No logs recorded yet.</div>'; return; }
       let html = '';
-      // Show newest first
-      const reversed = [...logs].reverse();
-      reversed.forEach(log => {
+      [...logs].reverse().forEach(log => {
         const time = new Date(log.timestamp).toLocaleString();
-        const levelClass = log.level || 'info';
-        html += `
-          <div class="log-entry">
-            <span class="log-time">${time}</span>
-            <span class="log-level ${levelClass}">${levelClass.toUpperCase()}</span>
-            <span class="log-message">${log.message}</span>
-          </div>
-        `;
+        const lvl = log.level || 'info';
+        html += `<div class="log-entry"><span class="log-time">${time}</span><span class="log-level ${lvl}">${lvl.toUpperCase()}</span><span class="log-message">${log.message}</span></div>`;
       });
       container.innerHTML = html;
     }
-
-    // Clear logs
-    document.getElementById('clearLogsBtn').addEventListener('click', () => {
-      if (confirm('Clear all logs?')) {
-        logs.length = 0;
-        renderLogs();
-        addLog('info', 'Logs cleared by admin.');
-      }
-    });
-
-    // Export logs as CSV
+    document.getElementById('clearLogsBtn').addEventListener('click', () => { if (confirm('Clear logs?')) { logs.length = 0; renderLogs(); addLog('info', 'Logs cleared.'); } });
     document.getElementById('exportLogsBtn').addEventListener('click', () => {
       if (logs.length === 0) { alert('No logs to export.'); return; }
       let csv = 'Timestamp,Level,Message\n';
-      logs.forEach(log => {
-        csv += `"${log.timestamp}","${log.level || 'info'}","${log.message.replace(/"/g, '""')}"\n`;
-      });
+      logs.forEach(log => csv += `"${log.timestamp}","${log.level || 'info'}","${log.message.replace(/"/g,'""')}"\n`);
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `admin_logs_${new Date().toISOString().slice(0,10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      a.href = url; a.download = `admin_logs_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
       addLog('info', 'Logs exported.');
     });
+    document.getElementById('viewLogsBtn').addEventListener('click', () => { renderLogs(); bootstrap.Modal.getInstance(document.getElementById('logsModal')).show(); });
 
-    // View logs button
-    document.getElementById('viewLogsBtn').addEventListener('click', () => {
-      renderLogs();
-      bootstrap.Modal.getInstance(document.getElementById('logsModal')).show();
-    });
+    // ----- Supabase Config (YOUR CREDENTIALS) -----
+    const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96ZnJobWJ0Z2pxdWFneGJpbmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU2Mjg1NTQsImV4cCI6MjEwMTIwNDU1NH0.aUvqIJ4vyiWfgR96dscEFNL1xyoHeCtOUlZCRqN_YiI';
+    const IMGBB_API_KEY = '5a9a4df0c64cde49735902ccdc60b7af';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Log helper for actions (will be called from existing functions)
-    // We'll inject logging into the existing code.
-
-    // ----- INITIALIZATION (after password) -----
     let currentAdminUser = null;
     let designatedAdminUid = null;
     let dbListeners = {};
@@ -361,13 +956,7 @@
     let currentPlayersListForPdf = [];
     let newUserChart = null;
 
-    // Supabase config
-    const SUPABASE_URL = 'https://your-project.supabase.co';
-    const SUPABASE_ANON_KEY = 'your-anon-key';
-    const IMGBB_API_KEY = '5a9a4df0c64cde49735902ccdc60b7af';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ---- Helper functions (same as before) ----
+    // ----- Helpers -----
     const getElement = (id) => document.getElementById(id);
     const showLoader = (show) => { const el = getElement('adminLoader'); if (el) el.style.display = show ? 'flex' : 'none'; };
     function showStatus(element, message, type = 'danger', autohide = 5000) {
@@ -383,7 +972,7 @@
     function copyToClipboard(selector) { const el = document.querySelector(selector); if (!el) return; navigator.clipboard.writeText(el.textContent).catch(() => alert('Copy failed.')); }
     const tableLoadingPlaceholderHtml = (cols) => `<tr class="loading-placeholder"><td colspan="${cols}"><div class="placeholder w-100 py-3"></div></td></tr>`.repeat(2);
 
-    // ---- Auth functions (same) ----
+    // ----- Auth functions -----
     async function loginAdmin(email, password) {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -393,19 +982,17 @@
     async function logoutAdmin() {
       await supabase.auth.signOut();
       addLog('info', 'Admin logged out.');
-      // Show password overlay again? We'll just redirect to login.
-      location.reload(); // simple reset
+      location.reload();
     }
 
     async function checkAdminSetup() {
       const { data, error } = await supabase.from('admin_config').select('*').limit(1);
       if (error || !data || data.length === 0) return false;
-      const config = data[0];
-      designatedAdminUid = config.admin_uid;
-      return config.setup_complete;
+      designatedAdminUid = data[0].admin_uid;
+      return data[0].setup_complete;
     }
 
-    // ---- Auth state listener ----
+    // ----- Auth state listener -----
     supabase.auth.onAuthStateChange(async (event, session) => {
       const user = session?.user || null;
       currentAdminUser = user;
@@ -413,7 +1000,7 @@
         const isSetup = await checkAdminSetup();
         if (isSetup && user.id === designatedAdminUid) {
           document.getElementById('auth-container').style.display = 'none';
-          // The main area is already shown after password; just load data
+          document.getElementById('admin-main-area').style.display = 'block';
           await loadSettings();
           showAdminSection('dashboard-section');
           setupRealtimeAdminListeners();
@@ -423,13 +1010,22 @@
           await logoutAdmin();
         }
       } else {
-        // Not logged in – show auth container
         document.getElementById('auth-container').style.display = 'block';
         document.getElementById('admin-main-area').style.display = 'none';
+        (async () => {
+          const isSetup = await checkAdminSetup();
+          if (isSetup) {
+            document.getElementById('admin-login-section').style.display = 'block';
+            document.getElementById('admin-setup-section').style.display = 'none';
+          } else {
+            document.getElementById('admin-login-section').style.display = 'none';
+            document.getElementById('admin-setup-section').style.display = 'block';
+          }
+        })();
       }
     });
 
-    // ---- SECTION MANAGEMENT (same) ----
+    // ----- SECTION MANAGEMENT -----
     function showAdminSection(sectionId) {
       document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
       const target = getElement(sectionId);
@@ -456,52 +1052,1186 @@
       }
     }
 
-    // ---- REALTIME LISTENERS (same) ----
+    // ----- REALTIME LISTENERS -----
     function setupRealtimeAdminListeners() {
-      // ... same as before ...
-      // I'll include the full logic from previous admin.
-      // For brevity, I'll keep it minimal here but include in final code.
+      const wdQuery = supabase.channel('pending-withdrawals')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals' }, () => { updatePendingBadges(); })
+        .subscribe();
+      dbListeners['withdrawals'] = wdQuery;
+      const dpQuery = supabase.channel('pending-deposits')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'deposits' }, () => { updatePendingBadges(); })
+        .subscribe();
+      dbListeners['deposits'] = dpQuery;
+      const rfQuery = supabase.channel('pending-referrals')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pending_referrals' }, () => { updatePendingBadges(); })
+        .subscribe();
+      dbListeners['referrals'] = rfQuery;
+      const settingsQuery = supabase.channel('settings')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'settings' }, (payload) => {
+          appSettings = payload.new;
+          applyThemeToAdminPanel(appSettings.theme);
+        })
+        .subscribe();
+      dbListeners['settings'] = settingsQuery;
       addLog('info', 'Realtime listeners attached.');
     }
 
-    // ---- All existing functions (games, promotions, tournaments, users, etc.) ----
-    // They are identical to the previous admin.html. I will embed them fully in the final file.
-    // To save response size, I'll reference that they are included.
-    // But because you asked for whole code, I will include the complete script block with all functions.
+    async function updatePendingBadges() {
+      const { count: wdCount } = await supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+      const wdBadge = getElement('pendingWithdrawalCountBadge');
+      if (wdBadge) { wdBadge.textContent = wdCount; wdBadge.style.display = wdCount > 0 ? 'inline-block' : 'none'; }
+      const { count: dpCount } = await supabase.from('deposits').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+      const dpBadge = getElement('pendingDepositCountBadge');
+      if (dpBadge) { dpBadge.textContent = dpCount; dpBadge.style.display = dpCount > 0 ? 'inline-block' : 'none'; }
+      const { count: rfCount } = await supabase.from('pending_referrals').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+      const rfBadge = getElement('pendingReferralCountBadge');
+      if (rfBadge) { rfBadge.textContent = rfCount; rfBadge.style.display = rfCount > 0 ? 'inline-block' : 'none'; }
+    }
+
+    // ----- DASHBOARD -----
+    async function loadDashboardStats() {
+      const { count: totalUsers } = await supabase.from('users').select('*', { count: 'exact', head: true });
+      getElement('statTotalUsers').textContent = totalUsers || 0;
+      const { data: tournaments } = await supabase.from('tournaments').select('status');
+      let active = 0, finished = 0;
+      if (tournaments) tournaments.forEach(t => { if (['upcoming','ongoing'].includes(t.status)) active++; else if (['completed','result','cancelled'].includes(t.status)) finished++; });
+      getElement('statActiveTournaments').textContent = active;
+      getElement('statFinishedTournaments').textContent = finished;
+      const { count: totalGames } = await supabase.from('games').select('*', { count: 'exact', head: true });
+      getElement('statTotalGames').textContent = totalGames || 0;
+      const { count: totalPromotions } = await supabase.from('promotions').select('*', { count: 'exact', head: true });
+      getElement('statTotalPromotions').textContent = totalPromotions || 0;
+      const { count: wdPending } = await supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+      getElement('statPendingWithdrawals').textContent = wdPending || 0;
+      const { count: wdCompleted } = await supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'completed');
+      getElement('statCompletedWithdrawals').textContent = wdCompleted || 0;
+      const { count: wdRejected } = await supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'rejected');
+      getElement('statRejectedWithdrawals').textContent = wdRejected || 0;
+      updatePendingBadges();
+      renderNewUserChart();
+    }
+
+    async function renderNewUserChart() {
+      const { data: users } = await supabase.from('users').select('created_at');
+      if (!users) return;
+      const days = Array(7).fill(0).map((_, i) => { const d = new Date(); d.setDate(d.getDate() - i); return d; }).reverse();
+      const labels = days.map(d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      const counts = Array(7).fill(0);
+      users.forEach(u => {
+        const d = new Date(u.created_at);
+        for (let i = 0; i < 7; i++) {
+          const dayStart = new Date(days[i]).setHours(0,0,0,0);
+          const dayEnd = new Date(days[i]).setHours(23,59,59,999);
+          if (d >= dayStart && d <= dayEnd) { counts[i]++; break; }
+        }
+      });
+      if (newUserChart) newUserChart.destroy();
+      newUserChart = new Chart(getElement('newUserChart'), {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'New Users', data: counts, backgroundColor: 'rgba(250,204,21,0.7)', borderColor: 'rgb(250,204,21)', borderWidth: 1 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#94A3B8' } }, x: { ticks: { color: '#94A3B8' } } } }
+      });
+    }
+
+    // ----- GAMES -----
+    async function loadGames() {
+      const { data, error } = await supabase.from('games').select('*');
+      if (error) return;
+      gameDataCache = data.reduce((acc, g) => { acc[g.id] = g.name; return acc; }, {});
+      const tbody = getElement('gamesTableBody');
+      tbody.innerHTML = '';
+      data.forEach(game => {
+        tbody.innerHTML += `
+          <tr>
+            <td><img src="${game.image_url}" class="preview-img"></td>
+            <td>${game.name}</td>
+            <td><small class="text-muted">${game.id}</small> <i class="bi bi-clipboard copy-btn" data-target="td:nth-child(3) > small"></i></td>
+            <td class="action-buttons">
+              <button class="btn btn-sm btn-info btn-edit-game" data-id="${game.id}"><i class="bi bi-pencil-square"></i></button>
+              <button class="btn btn-sm btn-danger btn-delete-game" data-id="${game.id}"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function deleteGame(id) { if (!confirm('Delete game?')) return; await supabase.from('games').delete().eq('id', id); loadGames(); addLog('info', `Game deleted: ${id}`); }
+    async function openEditGameModal(id) {
+      const { data: game } = await supabase.from('games').select('*').eq('id', id).single();
+      if (!game) return;
+      getElement('gameModalTitle').textContent = 'Edit Game';
+      getElement('gameEditId').value = id;
+      getElement('gameName').value = game.name;
+      getElement('gameImageUrl').value = game.image_url;
+      bootstrap.Modal.getInstance(getElement('gameModal')).show();
+    }
+
+    getElement('saveGameBtn').addEventListener('click', async () => {
+      const id = getElement('gameEditId').value;
+      const name = getElement('gameName').value.trim();
+      let image_url = getElement('gameImageUrl').value.trim();
+      const file = getElement('gameImageFile').files[0];
+      if (file) {
+        const fd = new FormData(); fd.append('image', file);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (json.success) image_url = json.data.url;
+      }
+      if (!name || !image_url) { showStatus(getElement('gameStatus'), 'Name and image required.', 'warning'); return; }
+      if (id) await supabase.from('games').update({ name, image_url }).eq('id', id);
+      else await supabase.from('games').insert([{ name, image_url, created_at: new Date() }]);
+      bootstrap.Modal.getInstance(getElement('gameModal')).hide();
+      loadGames();
+      addLog('success', `Game ${id ? 'updated' : 'added'}: ${name}`);
+    });
+    getElement('addNewGameBtn').addEventListener('click', () => {
+      getElement('gameModalTitle').textContent = 'Add New Game';
+      getElement('gameEditId').value = '';
+      getElement('gameForm').reset();
+    });
+
+    // ----- PROMOTIONS -----
+    async function loadPromotions() {
+      const { data, error } = await supabase.from('promotions').select('*');
+      if (error) return;
+      const tbody = getElement('promotionsTableBody');
+      tbody.innerHTML = '';
+      data.forEach(p => {
+        const enabled = p.enabled !== false;
+        tbody.innerHTML += `
+          <tr>
+            <td><img src="${p.image_url}" class="preview-img"></td>
+            <td>${p.link ? `<a href="${p.link}" target="_blank">${p.link.substring(0,30)}</a>` : 'No Link'}</td>
+            <td><span class="status-badge text-bg-${enabled ? 'success' : 'secondary'}">${enabled ? 'Enabled' : 'Disabled'}</span></td>
+            <td class="action-buttons">
+              <button class="btn btn-sm btn-info btn-edit-promo" data-id="${p.id}"><i class="bi bi-pencil-square"></i></button>
+              <button class="btn btn-sm btn-danger btn-delete-promo" data-id="${p.id}"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function deletePromotion(id) { if (!confirm('Delete promotion?')) return; await supabase.from('promotions').delete().eq('id', id); loadPromotions(); addLog('info', `Promotion deleted: ${id}`); }
+    async function openEditPromotionModal(id) {
+      const { data: promo } = await supabase.from('promotions').select('*').eq('id', id).single();
+      if (!promo) return;
+      getElement('promotionModalTitle').textContent = 'Edit Promotion';
+      getElement('promotionEditId').value = id;
+      getElement('promoImageUrl').value = promo.image_url;
+      getElement('promoLink').value = promo.link || '';
+      getElement('promoEnabled').checked = promo.enabled !== false;
+      bootstrap.Modal.getInstance(getElement('promotionModal')).show();
+    }
+
+    getElement('savePromotionBtn').addEventListener('click', async () => {
+      const id = getElement('promotionEditId').value;
+      let image_url = getElement('promoImageUrl').value.trim();
+      const link = getElement('promoLink').value.trim();
+      const enabled = getElement('promoEnabled').checked;
+      const file = getElement('promoImageFile').files[0];
+      if (file) {
+        const fd = new FormData(); fd.append('image', file);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (json.success) image_url = json.data.url;
+      }
+      if (!image_url) { showStatus(getElement('promotionStatus'), 'Image URL required.', 'warning'); return; }
+      if (id) await supabase.from('promotions').update({ image_url, link, enabled }).eq('id', id);
+      else await supabase.from('promotions').insert([{ image_url, link, enabled, created_at: new Date() }]);
+      bootstrap.Modal.getInstance(getElement('promotionModal')).hide();
+      loadPromotions();
+      addLog('success', `Promotion ${id ? 'updated' : 'added'}: ${image_url}`);
+    });
+    getElement('addNewPromotionBtn').addEventListener('click', () => {
+      getElement('promotionModalTitle').textContent = 'Add New Promotion';
+      getElement('promotionEditId').value = '';
+      getElement('promotionForm').reset();
+      getElement('promoEnabled').checked = true;
+    });
+
+    // ----- TOURNAMENTS -----
+    async function loadTournaments() {
+      const { data, error } = await supabase.from('tournaments').select('*, games(name, image_url)').order('created_at', { ascending: false });
+      if (error) return;
+      const tbody = getElement('tournamentsTableBody');
+      tbody.innerHTML = '';
+      data.forEach(t => {
+        const regCount = t.registered_players ? Object.keys(t.registered_players).length : 0;
+        const maxSlots = t.max_players || 0;
+        const profit = (t.entry_fee || 0) * maxSlots - (t.prize_pool || 0);
+        const statusBadge = `<span class="status-badge text-bg-${t.status === 'upcoming' ? 'info' : t.status === 'ongoing' ? 'success' : t.status === 'completed' || t.status === 'result' ? 'secondary' : 'danger'}">${t.status}</span>`;
+        tbody.innerHTML += `
+          <tr>
+            <td>${t.name}</td>
+            <td>${t.games?.name || 'Unknown'}</td>
+            <td>${t.mode || 'Solo'}</td>
+            <td>₹${t.entry_fee}</td>
+            <td>₹${t.prize_pool}</td>
+            <td>${maxSlots > 0 ? maxSlots : '∞'}</td>
+            <td>${regCount}</td>
+            <td>₹${profit}</td>
+            <td>${statusBadge}</td>
+            <td class="action-buttons">
+              <button class="btn btn-sm btn-info btn-edit-tournament" data-id="${t.id}"><i class="bi bi-pencil-square"></i></button>
+              <button class="btn btn-sm btn-secondary btn-view-registered" data-id="${t.id}" data-name="${t.name}"><i class="bi bi-people"></i></button>
+              <button class="btn btn-sm btn-danger btn-delete-tournament" data-id="${t.id}"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function deleteTournament(id) { if (!confirm('Delete tournament?')) return; await supabase.from('tournaments').delete().eq('id', id); loadTournaments(); addLog('info', `Tournament deleted: ${id}`); }
+    async function openEditTournamentModal(id) {
+      const { data: t } = await supabase.from('tournaments').select('*').eq('id', id).single();
+      if (!t) return;
+      getElement('tournamentEditId').value = t.id;
+      getElement('tournamentName').value = t.name;
+      getElement('tournamentMode').value = t.mode || 'Solo';
+      if (t.mode && !['Solo','Duo','Squad','Custom'].includes(t.mode)) {
+        getElement('tournamentMode').value = 'Custom';
+        getElement('tournamentCustomMode').value = t.mode;
+        getElement('customModeContainer').style.display = 'block';
+      } else getElement('customModeContainer').style.display = 'none';
+      getElement('tournamentEntryFee').value = t.entry_fee;
+      getElement('tournamentPrizePool').value = t.prize_pool;
+      getElement('tournamentMaxPlayers').value = t.max_players;
+      getElement('tournamentStartTime').value = t.start_time ? new Date(t.start_time).toISOString().slice(0,16) : '';
+      getElement('tournamentStatus').value = t.status;
+      getElement('tournamentBannerUrl').value = t.banner_url || '';
+      getElement('tournamentDescription').value = t.description || '';
+      getElement('tournamentRoomId').value = t.room_id || '';
+      getElement('tournamentRoomPassword').value = t.room_password || '';
+      getElement('tournamentShowIdPass').checked = t.show_id_pass || false;
+      getElement('tournamentRegistrationOpen').checked = t.registration_open !== false;
+      await populateGameSelect(t.game_id);
+      getElement('tournamentModalTitle').textContent = 'Edit Tournament';
+      updateProfitMargin();
+      bootstrap.Modal.getInstance(getElement('addTournamentModal')).show();
+    }
+
+    async function populateGameSelect(selected = null) {
+      const select = getElement('tournamentGame');
+      const { data, error } = await supabase.from('games').select('*');
+      if (error) return;
+      select.innerHTML = '<option value="">Select Game</option>';
+      data.forEach(g => { const opt = document.createElement('option'); opt.value = g.id; opt.textContent = g.name; select.appendChild(opt); });
+      if (selected) select.value = selected;
+    }
+
+    function updateProfitMargin() {
+      const fee = parseFloat(getElement('tournamentEntryFee').value) || 0;
+      const prize = parseFloat(getElement('tournamentPrizePool').value) || 0;
+      const slots = parseInt(getElement('tournamentMaxPlayers').value) || 0;
+      getElement('profitMarginValue').textContent = (fee * slots - prize).toFixed(2);
+    }
+
+    getElement('tournamentEntryFee').addEventListener('input', updateProfitMargin);
+    getElement('tournamentPrizePool').addEventListener('input', updateProfitMargin);
+    getElement('tournamentMaxPlayers').addEventListener('input', updateProfitMargin);
+    getElement('tournamentMode').addEventListener('change', () => {
+      getElement('customModeContainer').style.display = getElement('tournamentMode').value === 'Custom' ? 'block' : 'none';
+    });
+
+    getElement('saveTournamentBtn').addEventListener('click', async () => {
+      const id = getElement('tournamentEditId').value;
+      const gameId = getElement('tournamentGame').value;
+      const name = getElement('tournamentName').value.trim();
+      const mode = getElement('tournamentMode').value;
+      const customMode = getElement('tournamentCustomMode').value.trim();
+      const entryFee = parseFloat(getElement('tournamentEntryFee').value) || 0;
+      const prizePool = parseFloat(getElement('tournamentPrizePool').value) || 0;
+      const maxPlayers = parseInt(getElement('tournamentMaxPlayers').value) || 0;
+      const startTime = getElement('tournamentStartTime').value;
+      const status = getElement('tournamentStatus').value;
+      const bannerUrl = getElement('tournamentBannerUrl').value.trim();
+      const description = getElement('tournamentDescription').value.trim();
+      const roomId = getElement('tournamentRoomId').value.trim();
+      const roomPassword = getElement('tournamentRoomPassword').value.trim();
+      const showIdPass = getElement('tournamentShowIdPass').checked;
+      const registrationOpen = getElement('tournamentRegistrationOpen').checked;
+      if (!gameId || !name || !startTime) { showStatus(getElement('addTournamentStatus'), 'Game, Name, and Start Time required.', 'warning'); return; }
+      const finalMode = (mode === 'Custom' && customMode) ? customMode : mode;
+      const data = { game_id: gameId, name, mode: finalMode, entry_fee: entryFee, prize_pool: prizePool, max_players: maxPlayers, start_time: new Date(startTime).toISOString(), status, banner_url: bannerUrl || null, description: description || null, room_id: roomId || null, room_password: roomPassword || null, show_id_pass: showIdPass, registration_open: registrationOpen, updated_at: new Date() };
+      try {
+        if (id) { await supabase.from('tournaments').update(data).eq('id', id); addLog('info', `Tournament updated: ${name}`); showStatus(getElement('tournamentsStatus'), 'Tournament updated!', 'success', 3000); }
+        else { data.created_at = new Date(); await supabase.from('tournaments').insert([data]); addLog('info', `Tournament added: ${name}`); showStatus(getElement('tournamentsStatus'), 'Tournament added!', 'success', 3000); }
+        getElement('tournamentForm').reset(); getElement('tournamentEditId').value = '';
+        bootstrap.Modal.getInstance(getElement('addTournamentModal')).hide();
+        loadTournaments();
+      } catch (err) { showStatus(getElement('addTournamentStatus'), 'Error: ' + err.message, 'danger'); }
+    });
+
+    getElement('addNewTournamentBtn').addEventListener('click', () => {
+      getElement('tournamentForm').reset();
+      getElement('tournamentEditId').value = '';
+      getElement('tournamentModalTitle').textContent = 'Add New Tournament';
+      populateGameSelect();
+      updateProfitMargin();
+      getElement('customModeContainer').style.display = 'none';
+    });
+
+    // ----- TOURNAMENT MANAGEMENT -----
+    async function populateTournamentManagementSelector() {
+      const select = getElement('tmsTournamentSelect');
+      select.innerHTML = '<option value="">Loading...</option>';
+      const { data, error } = await supabase.from('tournaments').select('id, name, status, start_time, per_kill_prize').in('status', ['ongoing','completed','result']).order('start_time', { ascending: false });
+      if (error) { select.innerHTML = '<option value="">Error loading</option>'; return; }
+      select.innerHTML = '<option value="">-- Select a tournament --</option>';
+      data.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = `${t.name} (${new Date(t.start_time).toLocaleDateString()}) - ${t.status}`;
+        opt.dataset.perKillPrize = t.per_kill_prize || 0;
+        opt.dataset.name = t.name;
+        select.appendChild(opt);
+      });
+    }
+
+    getElement('tmsTournamentSelect').addEventListener('change', (e) => {
+      const id = e.target.value;
+      if (!id) { getElement('tmsPlayerListContainer').style.display = 'none'; return; }
+      loadPlayersForManagement(id);
+    });
+
+    async function loadPlayersForManagement(tournamentId) {
+      const container = getElement('tmsPlayerListContainer');
+      const tbody = getElement('tmsPlayerListTableBody');
+      const creditBtn = getElement('creditWinningsBtn');
+      clearStatus(getElement('tmsStatus'));
+      container.style.display = 'block';
+      tbody.innerHTML = '<tr><td colspan="7"><div class="spinner-border"></div></td></tr>';
+      creditBtn.disabled = true;
+      creditBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Credit All Winnings';
+      try {
+        const { data: tournament } = await supabase.from('tournaments').select('registered_players, per_kill_prize, winnings_credited').eq('id', tournamentId).single();
+        if (!tournament) throw new Error('Tournament not found');
+        if (tournament.winnings_credited) { showStatus(getElement('tmsStatus'), 'Winnings already credited.', 'info', false); creditBtn.disabled = true; creditBtn.textContent = 'Already Credited'; } else creditBtn.disabled = false;
+        const players = tournament.registered_players || {};
+        const userIds = Object.keys(players);
+        if (userIds.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No players registered.</td></tr>'; return; }
+        let html = '';
+        for (const uid of userIds) {
+          const { data: user } = await supabase.from('users').select('display_name, game_uid').eq('id', uid).single();
+          const display = user?.display_name || uid;
+          const gameUid = user?.game_uid || 'N/A';
+          html += `<tr data-uid="${uid}" data-per-kill-prize="${tournament.per_kill_prize || 0}">
+            <td>${display}</td><td><small class="text-muted">${gameUid}</small></td>
+            <td>${formatCurrency(tournament.per_kill_prize || 0)}</td>
+            <td><input type="number" class="form-control kills-input" min="0" value="0"></td>
+            <td><input type="number" class="form-control extra-amount-input" min="0" value="0" step="any"></td>
+            <td><input type="number" class="form-control rank-input" min="1"></td>
+            <td class="calculated-prize">${formatCurrency(0)}</td>
+          </tr>`;
+        }
+        tbody.innerHTML = html;
+        tbody.querySelectorAll('.kills-input, .extra-amount-input, .rank-input').forEach(inp => inp.addEventListener('input', () => calculateRowPrize(inp.closest('tr'))));
+        tbody.querySelectorAll('tr[data-uid]').forEach(row => calculateRowPrize(row));
+      } catch (err) { showStatus(getElement('tmsStatus'), 'Error: ' + err.message, 'danger'); tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading players.</td></tr>'; }
+    }
+
+    function calculateRowPrize(row) {
+      const perKill = parseFloat(row.dataset.perKillPrize || 0);
+      const kills = parseInt(row.querySelector('.kills-input')?.value || 0);
+      const extra = parseFloat(row.querySelector('.extra-amount-input')?.value || 0);
+      const total = (kills * perKill) + extra;
+      const cell = row.querySelector('.calculated-prize');
+      if (cell) cell.textContent = formatCurrency(total);
+    }
+
+    getElement('creditWinningsBtn').addEventListener('click', async () => {
+      const tournamentId = getElement('tmsTournamentSelect').value;
+      const selected = getElement('tmsTournamentSelect').options[getElement('tmsTournamentSelect').selectedIndex];
+      const name = selected?.dataset?.name || 'Tournament';
+      if (!tournamentId) return;
+      if (!confirm(`Credit winnings for "${name}"? This action cannot be undone.`)) return;
+      showLoader(true);
+      const btn = getElement('creditWinningsBtn');
+      btn.disabled = true;
+      clearStatus(getElement('tmsStatus'));
+      const rows = document.querySelectorAll('#tmsPlayerListTableBody tr[data-uid]');
+      let totalCredited = 0, playersCredited = 0;
+      for (const row of rows) {
+        const uid = row.dataset.uid;
+        const perKill = parseFloat(row.dataset.perKillPrize || 0);
+        const kills = parseInt(row.querySelector('.kills-input')?.value || 0);
+        const extra = parseFloat(row.querySelector('.extra-amount-input')?.value || 0);
+        const rank = parseInt(row.querySelector('.rank-input')?.value) || 0;
+        const totalPrize = (kills * perKill) + extra;
+        if (totalPrize <= 0) continue;
+        const { data: user } = await supabase.from('users').select('balance, winning_cash, total_earnings, total_matches, won_matches').eq('id', uid).single();
+        if (!user) continue;
+        const newBalance = (user.balance || 0) + totalPrize;
+        const newWinning = (user.winning_cash || 0) + totalPrize;
+        const newEarnings = (user.total_earnings || 0) + totalPrize;
+        const newMatches = (user.total_matches || 0) + 1;
+        const newWins = (rank === 1) ? (user.won_matches || 0) + 1 : (user.won_matches || 0);
+        await supabase.from('users').update({ balance: newBalance, winning_cash: newWinning, total_earnings: newEarnings, total_matches: newMatches, won_matches: newWins }).eq('id', uid);
+        await supabase.from('transactions').insert([{ user_id: uid, type: 'tournament_winnings', amount: totalPrize, description: `Winnings from ${name}`, timestamp: new Date(), balance_after: newBalance, admin_uid: currentAdminUser.id }]);
+        const matchHistory = { tournamentName: name, rank, kills, earnings: totalPrize, date: new Date() };
+        const { data: userHist } = await supabase.from('users').select('match_history').eq('id', uid).single();
+        const hist = userHist?.match_history || {};
+        hist[tournamentId] = matchHistory;
+        await supabase.from('users').update({ match_history: hist }).eq('id', uid);
+        totalCredited += totalPrize;
+        playersCredited++;
+      }
+      await supabase.from('tournaments').update({ winnings_credited: true, status: 'result' }).eq('id', tournamentId);
+      showStatus(getElement('tmsStatus'), `Credited ${formatCurrency(totalCredited)} to ${playersCredited} players.`, 'success');
+      addLog('success', `Credited winnings for ${name}: ₹${totalCredited}`);
+      loadTournaments();
+      loadPlayersForManagement(tournamentId);
+      showLoader(false);
+      btn.disabled = false;
+    });
+
+    // ----- USERS -----
+    async function loadUsers() {
+      const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+      if (error) return;
+      fullUserDataCache = data.reduce((acc, u) => { acc[u.id] = u; return acc; }, {});
+      renderUsersTable(data);
+    }
+
+    function renderUsersTable(users) {
+      const tbody = getElement('usersTableBody');
+      let html = '';
+      users.forEach(u => {
+        const statusBadge = `<span class="status-badge text-bg-${u.status === 'active' ? 'success' : 'danger'}">${u.status || 'active'}</span>`;
+        html += `
+          <tr>
+            <td><input type="checkbox" class="form-check-input user-select-checkbox" data-uid="${u.id}"></td>
+            <td><small class="text-muted">${u.id}</small> <i class="bi bi-clipboard copy-btn" data-target="td:nth-child(2) > small"></i></td>
+            <td>${u.display_name || 'N/A'}</td>
+            <td>${u.email || 'N/A'}</td>
+            <td>${formatCurrency(u.balance)}</td>
+            <td>${u.free_fire_uid || 'N/A'}</td>
+            <td>${u.ff_clan_name || 'N/A'}</td>
+            <td>${u.ff_verified ? '✅' : '❌'}</td>
+            <td>${statusBadge}</td>
+            <td class="action-buttons">
+              <button class="btn btn-sm btn-info btn-view-user" data-id="${u.id}"><i class="bi bi-eye"></i></button>
+              <button class="btn btn-sm btn-danger btn-delete-user" data-id="${u.id}"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html || '<tr><td colspan="10" class="text-center text-muted">No users found.</td></tr>';
+      updateSelectedUserNotificationUI();
+    }
+
+    getElement('userSearchInput').addEventListener('input', () => {
+      const term = getElement('userSearchInput').value.toLowerCase().trim();
+      const users = Object.values(fullUserDataCache).filter(u =>
+        (u.display_name || '').toLowerCase().includes(term) ||
+        (u.email || '').toLowerCase().includes(term) ||
+        (u.free_fire_uid || '').includes(term)
+      );
+      renderUsersTable(users);
+    });
+
+    // ----- USER MODAL -----
+    async function openUserModal(uid) {
+      showLoader(true);
+      const user = fullUserDataCache[uid];
+      if (!user) { alert('User not found'); showLoader(false); return; }
+      getElement('userModalTitle').textContent = `User: ${user.display_name || 'N/A'}`;
+      getElement('userDetailUid').textContent = uid;
+      getElement('userDetailEmail').textContent = user.email || 'N/A';
+      getElement('userDetailNameInput').value = user.display_name || '';
+      getElement('userDetailPhoneInput').value = user.phone_number || '';
+      getElement('userDetailFfUid').textContent = user.free_fire_uid || 'N/A';
+      getElement('userDetailClan').textContent = user.ff_clan_name || 'N/A';
+      getElement('userDetailVerified').textContent = user.ff_verified ? '✅ Verified' : '❌ Not Verified';
+      getElement('userDetailCreatedAt').textContent = formatDate(user.created_at);
+      getElement('userDetailBalance').textContent = (user.balance || 0).toFixed(2);
+      getElement('userDetailWinning').textContent = (user.winning_cash || 0).toFixed(2);
+      getElement('userDetailBonus').textContent = (user.bonus_cash || 0).toFixed(2);
+      getElement('userDetailReferralCode').textContent = user.referral_code || 'N/A';
+      getElement('userDetailReferredBy').textContent = user.referred_by || 'N/A';
+      const { count } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('referred_by', uid);
+      getElement('userDetailReferredCount').textContent = count || 0;
+      getElement('editUserUid').value = uid;
+      const status = user.status || 'active';
+      getElement('userDetailStatus').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+      getElement('userDetailStatus').className = `fw-bold text-${status === 'active' ? 'success' : 'danger'}`;
+      const blockBtn = getElement('userBlockBtn');
+      blockBtn.textContent = status === 'active' ? 'Block User' : 'Unblock User';
+      blockBtn.className = `btn btn-sm ${status === 'active' ? 'btn-danger' : 'btn-success'}`;
+      blockBtn.dataset.id = uid;
+      blockBtn.dataset.action = status === 'active' ? 'block' : 'unblock';
+      getElement('userDeleteBtn').dataset.id = uid;
+      bootstrap.Modal.getInstance(getElement('userModal')).show();
+      showLoader(false);
+    }
+
+    getElement('userBlockBtn').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      const uid = btn.dataset.id;
+      const action = btn.dataset.action;
+      if (!confirm(`${action} user ${uid}?`)) return;
+      const newStatus = action === 'block' ? 'blocked' : 'active';
+      await supabase.from('users').update({ status: newStatus }).eq('id', uid);
+      loadUsers();
+      openUserModal(uid);
+      addLog('info', `User ${uid} ${newStatus}`);
+    });
+
+    getElement('userDeleteBtn').addEventListener('click', async () => {
+      const uid = getElement('editUserUid').value;
+      if (!confirm(`Delete user ${uid}? This cannot be undone.`)) return;
+      await supabase.from('users').delete().eq('id', uid);
+      bootstrap.Modal.getInstance(getElement('userModal')).hide();
+      loadUsers();
+      addLog('info', `User deleted: ${uid}`);
+    });
+
+    getElement('updateUserInfoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = getElement('editUserUid').value;
+      const display_name = getElement('userDetailNameInput').value.trim();
+      const phone_number = getElement('userDetailPhoneInput').value.trim();
+      if (!display_name) { showStatus(getElement('updateUserInfoStatus'), 'Name required.', 'warning'); return; }
+      await supabase.from('users').update({ display_name, phone_number }).eq('id', uid);
+      showStatus(getElement('updateUserInfoStatus'), 'Updated!', 'success', 3000);
+      loadUsers();
+      addLog('info', `User info updated for ${uid}`);
+    });
+
+    getElement('updateBalanceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = getElement('editUserUid').value;
+      const amount = parseFloat(getElement('balanceUpdateAmount').value);
+      const type = getElement('balanceUpdateType').value;
+      const reason = getElement('balanceUpdateReason').value.trim();
+      if (!uid || isNaN(amount) || !type || !reason) { showStatus(getElement('balanceUpdateStatus'), 'All fields required.', 'warning'); return; }
+      const { data: user } = await supabase.from('users').select('balance, winning_cash, bonus_cash').eq('id', uid).single();
+      if (!user) { showStatus(getElement('balanceUpdateStatus'), 'User not found.', 'danger'); return; }
+      let newBalance = user.balance, newWinning = user.winning_cash, newBonus = user.bonus_cash;
+      if (type === 'balance') newBalance += amount;
+      else if (type === 'winningCash') { newWinning += amount; newBalance += amount; }
+      else if (type === 'bonusCash') { newBonus += amount; newBalance += amount; }
+      if (newWinning < 0 || newBonus < 0 || newBalance < 0) { showStatus(getElement('balanceUpdateStatus'), 'Balance cannot be negative.', 'warning'); return; }
+      await supabase.from('users').update({ balance: newBalance, winning_cash: newWinning, bonus_cash: newBonus }).eq('id', uid);
+      await supabase.from('transactions').insert([{ user_id: uid, type: 'admin_balance_edit', amount: amount, description: reason, timestamp: new Date(), balance_after: newBalance, admin_uid: currentAdminUser.id }]);
+      showStatus(getElement('balanceUpdateStatus'), `Updated! New total: ${formatCurrency(newBalance)}`, 'success', 3000);
+      loadUsers();
+      openUserModal(uid);
+      addLog('info', `Balance updated for ${uid}: ${formatCurrency(amount)} (${reason})`);
+    });
+
+    // ----- SELECTIVE NOTIFICATION -----
+    function updateSelectedUserNotificationUI() {
+      const checkboxes = document.querySelectorAll('#usersTableBody .user-select-checkbox:checked');
+      const count = checkboxes.length;
+      getElement('selectedUserCount').textContent = count;
+      getElement('sendToSelectedUsersBtn').disabled = count === 0;
+      const all = document.querySelectorAll('#usersTableBody .user-select-checkbox');
+      const checkedAll = document.querySelectorAll('#usersTableBody .user-select-checkbox:checked');
+      const selectAll = getElement('selectAllUsersCheckbox');
+      if (all.length > 0) { selectAll.checked = all.length === checkedAll.length; selectAll.indeterminate = checkedAll.length > 0 && checkedAll.length < all.length; }
+      else { selectAll.checked = false; selectAll.indeterminate = false; }
+    }
+
+    document.addEventListener('change', (e) => {
+      if (e.target.classList.contains('user-select-checkbox')) updateSelectedUserNotificationUI();
+    });
+
+    getElement('selectAllUsersCheckbox').addEventListener('change', (e) => {
+      document.querySelectorAll('#usersTableBody .user-select-checkbox').forEach(cb => cb.checked = e.target.checked);
+      updateSelectedUserNotificationUI();
+    });
+
+    getElement('sendSelectiveNotificationBtn').addEventListener('click', async () => {
+      const title = getElement('selectiveNotifTitle').value.trim();
+      const message = getElement('selectiveNotifMessage').value.trim();
+      const imageUrl = getElement('selectiveNotifImageUrl').value.trim();
+      if (!title || !message) { showStatus(getElement('selectiveNotificationStatus'), 'Title and Message required.', 'warning'); return; }
+      const selected = document.querySelectorAll('#usersTableBody .user-select-checkbox:checked');
+      const uids = Array.from(selected).map(cb => cb.dataset.uid);
+      if (uids.length === 0) { showStatus(getElement('selectiveNotificationStatus'), 'No users selected.', 'warning'); return; }
+      showLoader(true);
+      const notifData = { title, message, image_url: imageUrl || null, timestamp: new Date() };
+      for (const uid of uids) await supabase.from('user_notifications').insert([{ ...notifData, user_id: uid }]);
+      showStatus(getElement('usersStatus'), `Sent to ${uids.length} users.`, 'success', 3000);
+      bootstrap.Modal.getInstance(getElement('selectiveNotificationModal')).hide();
+      addLog('info', `Selective notification sent to ${uids.length} users`);
+      showLoader(false);
+    });
+
+    // ----- WITHDRAWALS -----
+    async function loadWithdrawals(status) {
+      const tbody = getElement(`${status}WithdrawalsTableBody`);
+      if (!tbody) return;
+      tbody.innerHTML = tableLoadingPlaceholderHtml(status === 'pending' ? 5 : 6);
+      const { data, error } = await supabase.from('withdrawals').select('*, users(display_name, email)').eq('status', status).order('request_timestamp', { ascending: false });
+      if (error) { tbody.innerHTML = `<tr><td colspan="${status === 'pending' ? 5 : 6}" class="text-danger">Error loading</td></tr>`; return; }
+      let html = '';
+      data.forEach(w => {
+        const user = w.users || {};
+        const userDisplay = `${user.display_name || 'N/A'} <small class="text-muted">${user.email || 'N/A'}</small>`;
+        const method = w.method_details?.methodName || 'N/A';
+        const requestTime = formatDate(w.request_timestamp);
+        const processedTime = formatDate(w.processed_at);
+        let row = `<tr><td>${requestTime}</td>`;
+        if (status !== 'pending') row += `<td>${processedTime}</td>`;
+        row += `<td>${userDisplay}</td><td>${formatCurrency(w.amount)}</td><td>${method}</td>`;
+        if (status === 'pending') row += `<td class="action-buttons"><button class="btn btn-sm btn-success btn-approve-withdrawal" data-id="${w.id}" data-userid="${w.user_id}"><i class="bi bi-check-circle"></i></button> <button class="btn btn-sm btn-danger btn-reject-withdrawal" data-id="${w.id}" data-userid="${w.user_id}"><i class="bi bi-x-circle"></i></button></td>`;
+        else if (status === 'completed') row += `<td>${w.admin_note || ''}</td>`;
+        else row += `<td>${w.reject_reason || ''}</td>`;
+        row += '</tr>';
+        html += row;
+      });
+      tbody.innerHTML = html || `<tr><td colspan="${status === 'pending' ? 5 : 6}" class="text-center text-muted">No ${status} withdrawals.</td></tr>`;
+    }
+
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('[data-id]');
+      if (!target) return;
+      if (target.classList.contains('btn-approve-withdrawal') || target.classList.contains('btn-reject-withdrawal')) {
+        currentWithdrawalAction = { id: target.dataset.id, type: target.classList.contains('btn-approve-withdrawal') ? 'approve' : 'reject', userId: target.dataset.userid };
+        openWithdrawalActionModal();
+      }
+    });
+
+    function openWithdrawalActionModal() {
+      supabase.from('withdrawals').select('*, users(display_name, email)').eq('id', currentWithdrawalAction.id).single().then(({ data: w }) => {
+        if (!w) return;
+        const user = w.users || {};
+        getElement('withdrawalDetailId').textContent = currentWithdrawalAction.id;
+        getElement('withdrawalDetailUser').innerHTML = `${user.display_name || 'N/A'} <small>${user.email || 'N/A'}</small>`;
+        getElement('withdrawalDetailAmount').textContent = w.amount;
+        getElement('withdrawalDetailMethod').textContent = w.method_details?.methodName || 'N/A';
+        getElement('withdrawalRejectReasonDiv').style.display = currentWithdrawalAction.type === 'reject' ? 'block' : 'none';
+        getElement('withdrawalApproveNoteDiv').style.display = currentWithdrawalAction.type === 'approve' ? 'block' : 'none';
+        getElement('withdrawalRejectReasonInput').value = '';
+        getElement('withdrawalApproveNoteInput').value = '';
+        clearStatus(getElement('withdrawalActionStatus'));
+        bootstrap.Modal.getInstance(getElement('withdrawalActionModal')).show();
+      });
+    }
+
+    getElement('approveWithdrawalBtn').addEventListener('click', async () => await processWithdrawal('approve'));
+    getElement('rejectWithdrawalBtn').addEventListener('click', async () => await processWithdrawal('reject'));
+
+    async function processWithdrawal(action) {
+      const id = currentWithdrawalAction.id;
+      const userId = currentWithdrawalAction.userId;
+      const amount = parseFloat(getElement('withdrawalDetailAmount').textContent);
+      const note = getElement('withdrawalApproveNoteInput').value.trim();
+      const reason = getElement('withdrawalRejectReasonInput').value.trim();
+      if (action === 'reject' && !reason) { showStatus(getElement('withdrawalActionStatus'), 'Rejection reason required.', 'warning'); return; }
+      showLoader(true);
+      try {
+        if (action === 'approve') {
+          await supabase.from('withdrawals').update({ status: 'completed', processed_at: new Date(), processed_by: currentAdminUser.id, admin_note: note || 'Approved' }).eq('id', id);
+          addLog('success', `Withdrawal ${id} approved`);
+        } else {
+          const { data: user } = await supabase.from('users').select('balance, winning_cash').eq('id', userId).single();
+          if (user) {
+            const newBalance = (user.balance || 0) + amount;
+            const newWinning = (user.winning_cash || 0) + amount;
+            await supabase.from('users').update({ balance: newBalance, winning_cash: newWinning }).eq('id', userId);
+          }
+          await supabase.from('withdrawals').update({ status: 'rejected', processed_at: new Date(), processed_by: currentAdminUser.id, reject_reason: reason }).eq('id', id);
+          await supabase.from('transactions').insert([{ user_id: userId, type: 'withdrawal_refund', amount, description: `Withdrawal ${id} rejected: ${reason}`, timestamp: new Date(), balance_after: (user?.balance || 0) + amount, admin_uid: currentAdminUser.id }]);
+          addLog('info', `Withdrawal ${id} rejected: ${reason}`);
+        }
+        showStatus(getElement('withdrawalsStatus'), `Withdrawal ${action}ed.`, 'success', 3000);
+        bootstrap.Modal.getInstance(getElement('withdrawalActionModal')).hide();
+        loadWithdrawals('pending'); loadWithdrawals('completed'); loadWithdrawals('rejected'); loadDashboardStats();
+      } catch (err) { showStatus(getElement('withdrawalActionStatus'), 'Error: ' + err.message, 'danger'); }
+      finally { showLoader(false); }
+    }
+
+    // ----- DEPOSITS -----
+    async function loadDepositRequests(status) {
+      const tbody = getElement(`${status}DepositsTableBody`);
+      if (!tbody) return;
+      tbody.innerHTML = tableLoadingPlaceholderHtml(6);
+      const { data, error } = await supabase.from('deposits').select('*, users(display_name, email)').eq('status', status).order('timestamp', { ascending: false });
+      if (error) { tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Error loading</td></tr>`; return; }
+      let html = '';
+      data.forEach(d => {
+        const user = d.users || {};
+        const userDisplay = `${user.display_name || 'N/A'} <small>${user.email || 'N/A'}</small>`;
+        const requestTime = formatDate(d.timestamp);
+        const processedTime = formatDate(d.processed_at);
+        let row = `<tr><td>${requestTime}</td>`;
+        if (status !== 'pending') row += `<td>${processedTime}</td>`;
+        row += `<td>${userDisplay}</td><td>${formatCurrency(d.amount)}</td><td>${d.utr || 'N/A'}</td><td>${d.payment_method || 'N/A'}</td>`;
+        if (status === 'pending') row += `<td class="action-buttons"><select class="form-select form-select-sm deposit-action-select" data-id="${d.id}" data-userid="${d.user_id}" data-amount="${d.amount}"><option value="">Select</option><option value="complete">Complete</option><option value="reject">Reject</option></select></td>`;
+        row += '</tr>';
+        html += row;
+      });
+      tbody.innerHTML = html || `<tr><td colspan="6" class="text-center text-muted">No ${status} deposits.</td></tr>`;
+    }
+
+    document.addEventListener('change', async (e) => {
+      if (e.target.classList.contains('deposit-action-select')) {
+        const select = e.target;
+        const action = select.value;
+        if (!action) return;
+        const depositId = select.dataset.id;
+        const userId = select.dataset.userid;
+        const amount = parseFloat(select.dataset.amount);
+        if (!confirm(`Mark deposit as ${action}?`)) { select.value = ''; return; }
+        showLoader(true);
+        try {
+          if (action === 'complete') {
+            await supabase.rpc('add_balance', { user_id: userId, amount });
+            await supabase.from('deposits').update({ status: 'completed', processed_at: new Date(), processed_by: currentAdminUser.id }).eq('id', depositId);
+            // Check referral
+            const { data: user } = await supabase.from('users').select('referred_by').eq('id', userId).single();
+            if (user && user.referred_by) {
+              const { data: settings } = await supabase.from('settings').select('referral_percent').limit(1).single();
+              const percent = settings?.referral_percent || 10;
+              const bonus = amount * (percent / 100);
+              if (bonus > 0) {
+                await supabase.rpc('add_balance', { user_id: user.referred_by, amount: bonus });
+                await supabase.from('users').update({ referral_earnings_from_spending: supabase.raw('referral_earnings_from_spending + ?', [bonus]), total_referred_spending: supabase.raw('total_referred_spending + ?', [amount]) }).eq('id', user.referred_by);
+                await supabase.from('transactions').insert([{ user_id: user.referred_by, type: 'referral_spending_bonus', amount: bonus, description: `10% of spending from ${userId}`, timestamp: new Date() }]);
+                addLog('info', `Referral bonus ₹${bonus} credited to ${user.referred_by} from deposit ${depositId}`);
+              }
+            }
+            addLog('success', `Deposit ${depositId} completed: ₹${amount}`);
+          } else {
+            await supabase.from('deposits').update({ status: 'rejected', processed_at: new Date(), processed_by: currentAdminUser.id }).eq('id', depositId);
+            addLog('info', `Deposit ${depositId} rejected`);
+          }
+          showStatus(getElement('depositsStatus'), `Deposit ${action}ed.`, 'success', 3000);
+          loadDepositRequests('pending'); loadDepositRequests('completed'); loadDepositRequests('rejected'); loadDashboardStats();
+        } catch (err) { showStatus(getElement('depositsStatus'), 'Error: ' + err.message, 'danger'); }
+        finally { showLoader(false); select.value = ''; }
+      }
+    });
+
+    // ----- REFERRALS -----
+    async function loadReferrals(status) {
+      const tbody = getElement(`${status}ReferralsTableBody`);
+      if (!tbody) return;
+      tbody.innerHTML = tableLoadingPlaceholderHtml(4);
+      const { data, error } = await supabase.from('pending_referrals').select('*, referrer:users!referrer_uid(display_name, email), referred:users!referred_uid(display_name, email)').eq('status', status).order('timestamp', { ascending: false });
+      if (error) { tbody.innerHTML = `<tr><td colspan="4" class="text-danger">Error loading</td></tr>`; return; }
+      let html = '';
+      data.forEach(r => {
+        const referrer = r.referrer || {};
+        const referred = r.referred || {};
+        const referrerName = referrer.display_name || 'N/A';
+        const referredName = referred.display_name || 'N/A';
+        if (status === 'pending') html += `<tr id="ref-row-${r.id}"><td>${formatDate(r.timestamp)}</td><td>${referrerName}</td><td>${referredName}</td><td class="action-buttons"><button class="btn btn-sm btn-success btn-credit-referral" data-id="${r.id}" data-referrer-uid="${r.referrer_uid}"><i class="bi bi-gift-fill"></i> Credit</button></td></tr>`;
+        else html += `<tr><td>${formatDate(r.credited_at)}</td><td>${referrerName}</td><td>${referredName}</td><td>${formatCurrency(r.bonus_amount)}</td></tr>`;
+      });
+      tbody.innerHTML = html || `<tr><td colspan="4" class="text-center text-muted">No ${status} referrals.</td></tr>`;
+    }
+
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-credit-referral');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const referrerUid = btn.dataset.referrerUid;
+      if (!confirm('Credit referral bonus?')) return;
+      showLoader(true);
+      try {
+        const { data: settings } = await supabase.from('settings').select('referral_bonus').limit(1).single();
+        const bonus = settings?.referral_bonus || 10;
+        await supabase.rpc('add_balance', { user_id: referrerUid, amount: bonus });
+        await supabase.from('pending_referrals').update({ status: 'credited', credited_at: new Date(), bonus_amount: bonus }).eq('id', id);
+        await supabase.from('transactions').insert([{ user_id: referrerUid, type: 'referral_bonus', amount: bonus, description: 'Referral bonus', timestamp: new Date() }]);
+        showStatus(getElement('referralsStatus'), 'Bonus credited!', 'success', 3000);
+        addLog('success', `Referral bonus ₹${bonus} credited to ${referrerUid}`);
+        loadReferrals('pending'); loadReferrals('completed');
+      } catch (err) { showStatus(getElement('referralsStatus'), 'Error: ' + err.message, 'danger'); }
+      finally { showLoader(false); }
+    });
+
+    // ----- NOTIFICATIONS -----
+    getElement('globalNotificationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = getElement('globalNotifTitle').value.trim();
+      const message = getElement('globalNotifMessage').value.trim();
+      const imageUrl = getElement('globalNotifImageUrl').value.trim();
+      if (!title || !message) { showStatus(getElement('globalNotificationStatus'), 'Title and Message required.', 'warning'); return; }
+      await supabase.from('notifications').insert([{ title, message, image_url: imageUrl || null, timestamp: new Date() }]);
+      showStatus(getElement('globalNotificationStatus'), 'Notification sent!', 'success', 3000);
+      getElement('globalNotificationForm').reset();
+      loadGlobalNotificationHistory();
+      addLog('info', `Global notification sent: ${title}`);
+    });
+
+    async function loadGlobalNotificationHistory() {
+      const historyEl = getElement('globalNotificationsHistory');
+      const { data, error } = await supabase.from('notifications').select('*').order('timestamp', { ascending: false });
+      if (error) { historyEl.innerHTML = '<p class="text-danger">Error loading.</p>'; return; }
+      if (!data || data.length === 0) { historyEl.innerHTML = '<p class="text-muted">No notifications sent.</p>'; return; }
+      let html = '<table class="table table-dark table-hover"><thead><tr><th>Sent At</th><th>Title</th><th>Message</th><th>Image</th></tr></thead><tbody>';
+      data.forEach(n => { html += `<tr><td>${formatDate(n.timestamp)}</td><td>${n.title}</td><td>${n.message}</td><td>${n.image_url ? `<a href="${n.image_url}" target="_blank">View</a>` : 'None'}</td></tr>`; });
+      html += '</tbody></table>';
+      historyEl.innerHTML = html;
+    }
+
+    getElement('individualNotificationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = getElement('editUserUid').value;
+      const title = getElement('individualNotifTitle').value.trim();
+      const message = getElement('individualNotifMessage').value.trim();
+      const imageUrl = getElement('individualNotifImageUrl').value.trim();
+      if (!uid || !title || !message) { showStatus(getElement('individualNotificationStatus'), 'All fields required.', 'warning'); return; }
+      await supabase.from('user_notifications').insert([{ user_id: uid, title, message, image_url: imageUrl || null, timestamp: new Date() }]);
+      showStatus(getElement('individualNotificationStatus'), 'Sent!', 'success', 3000);
+      getElement('individualNotificationForm').reset();
+      addLog('info', `Individual notification sent to ${uid}`);
+    });
+
+    // ----- SETTINGS -----
+    async function loadSettings() {
+      const { data, error } = await supabase.from('settings').select('*').limit(1).single();
+      if (error) return;
+      appSettings = data;
+      getElement('settingAppName').value = data.app_name || '';
+      getElement('settingLogoUrl').value = data.logo_url || '';
+      getElement('settingSplashLogoUrl').value = data.splash_logo_url || '';
+      getElement('settingGameIconUrl').value = data.game_icon_url || '';
+      getElement('settingSignupBonus').value = data.signup_bonus || 10;
+      getElement('settingReferralBonus').value = data.referral_bonus || 10;
+      getElement('settingReferralPercent').value = data.referral_percent || 10;
+      getElement('settingMinWithdraw').value = data.min_withdraw || 50;
+      getElement('settingSupportContact').value = data.support_contact || '';
+      getElement('settingDeveloperContact').value = data.developer_contact || '';
+      getElement('settingUpiDetails').value = data.upi_details || '';
+      getElement('settingQrCodeUrl').value = data.qr_code_url || '';
+      getElement('settingTelegramLink').value = data.telegram_link || '';
+      getElement('settingDiscordLink').value = data.discord_link || '';
+      getElement('settingYoutubeLink').value = data.youtube_link || '';
+      getElement('settingInstagramLink').value = data.instagram_link || '';
+      getElement('settingReferralShareLink').value = data.referral_share_link || '';
+      const appUpdate = data.app_update || {};
+      getElement('settingIsUpdateAvailable').checked = appUpdate.isUpdateAvailable || false;
+      getElement('settingAppVersion').value = appUpdate.appVersion || '';
+      getElement('settingUpdateUrl').value = appUpdate.updateUrl || '';
+      getElement('settingUpdateMessage').value = appUpdate.updateMessage || '';
+      const ann = data.announcement_bar || {};
+      getElement('settingEnableAnnouncementBar').checked = ann.isEnabled || false;
+      getElement('settingAnnouncementText').value = ann.text || '';
+      getElement('settingPolicyPrivacy').value = data.policy_privacy || '';
+      getElement('settingPolicyTerms').value = data.policy_terms || '';
+      getElement('settingPolicyRefund').value = data.policy_refund || '';
+      getElement('settingPolicyFairPlay').value = data.policy_fair_play || '';
+      applyThemeToAdminPanel(data.theme);
+    }
+
+    getElement('appSettingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const settingsData = {
+        app_name: getElement('settingAppName').value.trim(),
+        logo_url: getElement('settingLogoUrl').value.trim(),
+        splash_logo_url: getElement('settingSplashLogoUrl').value.trim(),
+        game_icon_url: getElement('settingGameIconUrl').value.trim(),
+        signup_bonus: parseFloat(getElement('settingSignupBonus').value) || 10,
+        referral_bonus: parseFloat(getElement('settingReferralBonus').value) || 10,
+        referral_percent: parseFloat(getElement('settingReferralPercent').value) || 10,
+        min_withdraw: parseFloat(getElement('settingMinWithdraw').value) || 50,
+        support_contact: getElement('settingSupportContact').value.trim(),
+        developer_contact: getElement('settingDeveloperContact').value.trim(),
+        upi_details: getElement('settingUpiDetails').value.trim(),
+        qr_code_url: getElement('settingQrCodeUrl').value.trim(),
+        telegram_link: getElement('settingTelegramLink').value.trim(),
+        discord_link: getElement('settingDiscordLink').value.trim(),
+        youtube_link: getElement('settingYoutubeLink').value.trim(),
+        instagram_link: getElement('settingInstagramLink').value.trim(),
+        referral_share_link: getElement('settingReferralShareLink').value.trim(),
+        app_update: {
+          isUpdateAvailable: getElement('settingIsUpdateAvailable').checked,
+          appVersion: getElement('settingAppVersion').value.trim(),
+          updateUrl: getElement('settingUpdateUrl').value.trim(),
+          updateMessage: getElement('settingUpdateMessage').value.trim()
+        },
+        announcement_bar: {
+          isEnabled: getElement('settingEnableAnnouncementBar').checked,
+          text: getElement('settingAnnouncementText').value.trim()
+        },
+        policy_privacy: getElement('settingPolicyPrivacy').value.trim(),
+        policy_terms: getElement('settingPolicyTerms').value.trim(),
+        policy_refund: getElement('settingPolicyRefund').value.trim(),
+        policy_fair_play: getElement('settingPolicyFairPlay').value.trim(),
+        last_updated: new Date()
+      };
+      showLoader(true);
+      try {
+        await supabase.from('settings').update(settingsData).eq('id', appSettings.id);
+        showStatus(getElement('settingsStatus'), 'Settings saved!', 'success', 3000);
+        loadSettings();
+        addLog('success', 'App settings updated');
+      } catch (err) { showStatus(getElement('settingsStatus'), 'Error: ' + err.message, 'danger'); }
+      finally { showLoader(false); }
+    });
+
+    // ----- THEME -----
+    function applyThemeToAdminPanel(theme) {
+      if (!theme) return;
+      const root = document.documentElement;
+      for (const [key, value] of Object.entries(theme)) { if (value) root.style.setProperty(`--${key}`, value); }
+    }
+
+    function loadThemeSettings() {
+      const theme = appSettings.theme || {};
+      document.querySelectorAll('#themeSettingsForm input[type="color"]').forEach(input => {
+        const varName = input.dataset.themeVar;
+        input.value = theme[varName] || '';
+      });
+    }
+
+    document.querySelectorAll('#themeSettingsForm input[type="color"]').forEach(input => {
+      input.addEventListener('input', () => {
+        const varName = input.dataset.themeVar;
+        document.documentElement.style.setProperty(`--${varName}`, input.value);
+      });
+    });
+
+    getElement('saveThemeBtn').addEventListener('click', async () => {
+      const theme = {};
+      document.querySelectorAll('#themeSettingsForm input[type="color"]').forEach(input => { theme[input.dataset.themeVar] = input.value; });
+      showLoader(true);
+      try {
+        await supabase.from('settings').update({ theme }).eq('id', appSettings.id);
+        showStatus(getElement('themeStatus'), 'Theme saved!', 'success', 3000);
+        loadSettings();
+        addLog('success', 'Theme updated');
+      } catch (err) { showStatus(getElement('themeStatus'), 'Error: ' + err.message, 'danger'); }
+      finally { showLoader(false); }
+    });
+
+    getElement('resetThemeBtn').addEventListener('click', async () => {
+      if (!confirm('Reset theme to default?')) return;
+      showLoader(true);
+      try {
+        await supabase.from('settings').update({ theme: null }).eq('id', appSettings.id);
+        showStatus(getElement('themeStatus'), 'Theme reset!', 'success', 3000);
+        loadSettings();
+        addLog('info', 'Theme reset to default');
+      } catch (err) { showStatus(getElement('themeStatus'), 'Error: ' + err.message, 'danger'); }
+      finally { showLoader(false); }
+    });
+
+    getElement('presetBtnDefault').addEventListener('click', () => {
+      const preset = { 'primary-bg': '#0F172A', 'secondary-bg': '#1E293B', 'card-bg': '#1E293B', 'text-primary': '#E2E8F0', 'text-secondary': '#94A3B8', 'accent-color': '#FACC15', 'primary-button-bg': '#3B82F6', 'border-color': '#334155', 'success-color': '#10B981', 'danger-color': '#EF4444', 'warning-color': '#F59E0B', 'info-color': '#60A5FA' };
+      document.querySelectorAll('#themeSettingsForm input[type="color"]').forEach(input => { const val = preset[input.dataset.themeVar]; if (val) input.value = val; input.dispatchEvent(new Event('input')); });
+    });
+    getElement('presetBtnLight').addEventListener('click', () => {
+      const preset = { 'primary-bg': '#F1F5F9', 'secondary-bg': '#FFFFFF', 'card-bg': '#FFFFFF', 'text-primary': '#0F172A', 'text-secondary': '#475569', 'accent-color': '#3B82F6', 'primary-button-bg': '#2563EB', 'border-color': '#CBD5E1', 'success-color': '#16A34A', 'danger-color': '#DC2626', 'warning-color': '#F59E0B', 'info-color': '#3B82F6' };
+      document.querySelectorAll('#themeSettingsForm input[type="color"]').forEach(input => { const val = preset[input.dataset.themeVar]; if (val) input.value = val; input.dispatchEvent(new Event('input')); });
+    });
+    getElement('presetBtnGamingRed').addEventListener('click', () => {
+      const preset = { 'primary-bg': '#111827', 'secondary-bg': '#1F2937', 'card-bg': '#1F2937', 'text-primary': '#F9FAFB', 'text-secondary': '#9CA3AF', 'accent-color': '#EF4444', 'primary-button-bg': '#D97706', 'border-color': '#374151', 'success-color': '#10B981', 'danger-color': '#EF4444', 'warning-color': '#F59E0B', 'info-color': '#3B82F6' };
+      document.querySelectorAll('#themeSettingsForm input[type="color"]').forEach(input => { const val = preset[input.dataset.themeVar]; if (val) input.value = val; input.dispatchEvent(new Event('input')); });
+    });
+
+    // ----- USER ANALYTICS -----
+    async function loadUserAnalyticsData() {
+      const { data: deposits } = await supabase.from('deposits').select('user_id, amount').eq('status', 'completed');
+      const spenders = {};
+      if (deposits) deposits.forEach(d => { spenders[d.user_id] = (spenders[d.user_id] || 0) + d.amount; });
+      const sorted = Object.entries(spenders).sort((a,b) => b[1] - a[1]).slice(0,10);
+      let html = '<table class="table table-dark table-sm"><thead><tr><th>User</th><th>Spent</th></tr></thead><tbody>';
+      for (const [uid, total] of sorted) {
+        const { data: user } = await supabase.from('users').select('display_name').eq('id', uid).single();
+        html += `<tr><td>${user?.display_name || uid}</td><td>${formatCurrency(total)}</td></tr>`;
+      }
+      html += '</tbody></table>';
+      getElement('topSpendersContainer').innerHTML = html || '<p class="text-muted">No data.</p>';
+
+      const { data: players } = await supabase.from('registered_players').select('user_id');
+      const active = {};
+      if (players) players.forEach(p => { active[p.user_id] = (active[p.user_id] || 0) + 1; });
+      const sortedActive = Object.entries(active).sort((a,b) => b[1] - a[1]).slice(0,10);
+      let html2 = '<table class="table table-dark table-sm"><thead><tr><th>User</th><th>Matches</th></tr></thead><tbody>';
+      for (const [uid, count] of sortedActive) {
+        const { data: user } = await supabase.from('users').select('display_name').eq('id', uid).single();
+        html2 += `<tr><td>${user?.display_name || uid}</td><td>${count}</td></tr>`;
+      }
+      html2 += '</tbody></table>';
+      getElement('mostActiveContainer').innerHTML = html2 || '<p class="text-muted">No data.</p>';
+
+      const cutoff = Date.now() - 15 * 24 * 60 * 60 * 1000;
+      const { data: users } = await supabase.from('users').select('id, display_name, last_login');
+      const inactive = users?.filter(u => !u.last_login || new Date(u.last_login).getTime() < cutoff) || [];
+      let html3 = '<table class="table table-dark table-sm"><thead><tr><th>User</th><th>Last Login</th></tr></thead><tbody>';
+      inactive.slice(0,10).forEach(u => { html3 += `<tr><td>${u.display_name || u.id}</td><td>${u.last_login ? formatDate(u.last_login) : 'Never'}</td></tr>`; });
+      html3 += '</tbody></table>';
+      getElement('inactiveUsersContainer').innerHTML = html3 || '<p class="text-muted">No inactive users.</p>';
+    }
+
+    // ----- BALANCE EDITOR -----
+    getElement('balanceEditorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userId = getElement('balanceEditorUserId').value.trim();
+      const amount = parseFloat(getElement('balanceEditorAmount').value);
+      const reason = getElement('balanceEditorReason').value.trim();
+      if (!userId || isNaN(amount) || !reason) { showStatus(getElement('balanceEditorStatus'), 'All fields required.', 'warning'); return; }
+      const { data: user } = await supabase.from('users').select('balance').eq('id', userId).single();
+      if (!user) { showStatus(getElement('balanceEditorStatus'), 'User not found.', 'danger'); return; }
+      const newBalance = (user.balance || 0) + amount;
+      await supabase.from('users').update({ balance: newBalance }).eq('id', userId);
+      await supabase.from('transactions').insert([{ user_id: userId, type: 'admin_balance_edit', amount, description: reason, timestamp: new Date(), balance_after: newBalance, admin_uid: currentAdminUser.id }]);
+      showStatus(getElement('balanceEditorStatus'), `Balance updated to ${formatCurrency(newBalance)}`, 'success', 3000);
+      getElement('balanceEditorForm').reset();
+      addLog('info', `Balance edited for ${userId}: ${formatCurrency(amount)} (${reason})`);
+    });
+
+    // ----- DEMO DATA -----
+    getElement('addDemoDataBtn').addEventListener('click', async () => {
+      if (!confirm('Add sample data? (only if tables are empty)')) return;
+      showLoader(true);
+      try {
+        const { count: gameCount } = await supabase.from('games').select('*', { count: 'exact', head: true });
+        if (gameCount === 0) await supabase.from('games').insert([{ name: 'Free Fire', image_url: 'https://i.ibb.co/4Z5hPVzp/20250418-150058.jpg', created_at: new Date() }]);
+        const { count: promoCount } = await supabase.from('promotions').select('*', { count: 'exact', head: true });
+        if (promoCount === 0) await supabase.from('promotions').insert([{ image_url: 'https://i.ibb.co/RGmQ420/20250418-150709.jpg', link: '#', enabled: true, created_at: new Date() }]);
+        const { count: tournCount } = await supabase.from('tournaments').select('*', { count: 'exact', head: true });
+        if (tournCount === 0) {
+          const { data: game } = await supabase.from('games').select('id').limit(1).single();
+          if (game) await supabase.from('tournaments').insert([{ game_id: game.id, name: 'Weekend Showdown', start_time: new Date(Date.now() + 86400000).toISOString(), status: 'upcoming', entry_fee: 10, prize_pool: 100, max_players: 50, mode: 'Squad', created_at: new Date(), updated_at: new Date() }]);
+        }
+        showStatus(getElement('dashboardStatus'), 'Demo data added!', 'success', 3000);
+        loadDashboardStats(); loadGames(); loadPromotions(); loadTournaments();
+        addLog('info', 'Demo data added');
+      } catch (err) { showStatus(getElement('dashboardStatus'), 'Error: ' + err.message, 'danger'); }
+      finally { showLoader(false); }
+    });
+
+    // ----- PDF DOWNLOADS -----
+    getElement('downloadUsersPdfBtn').addEventListener('click', async () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const { data: users } = await supabase.from('users').select('display_name, email, balance, status');
+      doc.text('POPPY ESPORTS – Users List', 14, 15);
+      doc.autoTable({ head: [['Name', 'Email', 'Balance', 'Status']], body: users.map(u => [u.display_name || 'N/A', u.email || 'N/A', formatCurrency(u.balance), u.status || 'active']) });
+      doc.save('users.pdf');
+      addLog('info', 'Users PDF downloaded');
+    });
+
+    getElement('downloadPlayersPdfBtn').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text('Registered Players', 14, 15);
+      const rows = currentPlayersListForPdf.map(p => [p.registeredBy, p.p1_username, p.p1_uid, p.p2_username, p.p2_uid, p.joinedAt]);
+      doc.autoTable({ head: [['Registered By', 'P1 Username', 'P1 UID', 'P2 Username', 'P2 UID', 'Joined At']], body: rows });
+      doc.save('players.pdf');
+      addLog('info', 'Players PDF downloaded');
+    });
+
+    // ----- REGISTERED PLAYERS MODAL -----
+    async function openRegisteredPlayersModal(tournamentId, tournamentName) {
+      getElement('registeredPlayersModalTitle').textContent = 'Registered Players';
+      getElement('registeredPlayersTournamentName').textContent = tournamentName || '';
+      const tbody = getElement('registeredPlayersTableBody');
+      tbody.innerHTML = '<tr><td colspan="4"><div class="spinner-border"></div></td></tr>';
+      bootstrap.Modal.getInstance(getElement('registeredPlayersModal')).show();
+      currentPlayersListForPdf = [];
+      const { data: players, error } = await supabase.from('registered_players').select('*, users(display_name, email)').eq('tournament_id', tournamentId);
+      if (error) { tbody.innerHTML = '<tr><td colspan="4" class="text-danger">Error loading</td></tr>'; return; }
+      if (!players || players.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-muted">No players.</td></tr>'; return; }
+      let html = '';
+      players.forEach(p => {
+        const user = p.users || {};
+        const display = user.display_name || 'N/A';
+        const email = user.email || 'N/A';
+        const p1 = p.username || 'N/A';
+        const p1uid = p.game_uid || 'N/A';
+        const teammates = p.teammates || [];
+        const p2 = teammates.length > 0 ? teammates[0].username : 'N/A';
+        const p2uid = teammates.length > 0 ? teammates[0].game_uid : 'N/A';
+        html += `<tr><td>${display}<br><small class="text-muted">${email}</small></td><td>${p1}<br><small>${p1uid}</small></td><td>${p2}<br><small>${p2uid}</small></td><td>${formatDate(p.joined_at)}</td></tr>`;
+        currentPlayersListForPdf.push({ registeredBy: `${display} (${email})`, p1_username: p1, p1_uid: p1uid, p2_username: p2, p2_uid: p2uid, joinedAt: formatDate(p.joined_at) });
+      });
+      tbody.innerHTML = html;
+    }
+
+    // ----- CLICK HANDLING (Delegated) -----
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('[data-id]');
+      if (!target) return;
+      if (target.classList.contains('btn-edit-game')) openEditGameModal(target.dataset.id);
+      else if (target.classList.contains('btn-delete-game')) deleteGame(target.dataset.id);
+      else if (target.classList.contains('btn-edit-promo')) openEditPromotionModal(target.dataset.id);
+      else if (target.classList.contains('btn-delete-promo')) deletePromotion(target.dataset.id);
+      else if (target.classList.contains('btn-edit-tournament')) openEditTournamentModal(target.dataset.id);
+      else if (target.classList.contains('btn-delete-tournament')) deleteTournament(target.dataset.id);
+      else if (target.classList.contains('btn-view-user')) openUserModal(target.dataset.id);
+      else if (target.classList.contains('btn-delete-user')) deleteUser(target.dataset.id);
+      else if (target.classList.contains('btn-view-registered')) openRegisteredPlayersModal(target.dataset.id, target.dataset.name);
+    });
+
+    document.addEventListener('click', (e) => {
+      const copy = e.target.closest('.copy-btn');
+      if (copy) copyToClipboard(copy.dataset.target);
+    });
+
+    // ----- SIDEBAR NAV -----
+    document.querySelectorAll('#adminSidebar .nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = link.dataset.section;
+        if (section) showAdminSection(section);
+        bootstrap.Offcanvas.getInstance(getElement('adminSidebar'))?.hide();
+      });
+    });
+
+    // ----- LOGIN/SETUP FORMS -----
+    document.getElementById('adminSetupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('setupEmail').value.trim();
+      const password = document.getElementById('setupPassword').value;
+      if (!email || password.length < 6) { showStatus(document.getElementById('adminSetupStatus'), 'Invalid email or password (min 6).', 'warning'); return; }
+      showLoader(true);
+      try {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        const uid = data.user.id;
+        await supabase.from('admin_config').insert([{ admin_uid: uid, setup_complete: true }]);
+        alert('Admin created! Please login.');
+        document.getElementById('admin-login-section').style.display = 'block';
+        document.getElementById('admin-setup-section').style.display = 'none';
+        addLog('success', `Admin setup complete for ${email}`);
+      } catch (err) { showStatus(document.getElementById('adminSetupStatus'), 'Error: ' + err.message, 'danger'); }
+      finally { showLoader(false); }
+    });
+
+    document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      try { await loginAdmin(email, password); }
+      catch (err) { showStatus(document.getElementById('adminLoginStatus'), 'Login failed: ' + err.message, 'danger'); }
+    });
+
+    document.getElementById('adminLogoutBtnHeader').addEventListener('click', logoutAdmin);
 
     // ==================== INITIALIZATION ====================
     function initializeAdmin() {
-      // Check if already logged in via Supabase
-      if (supabase.auth.session()) {
-        // User already logged in, but we still need to load settings, etc.
-        // The auth state listener will handle it.
+      const session = supabase.auth.session();
+      if (session) {
+        // Auth listener will handle
       } else {
-        // Show login/signup container
         document.getElementById('auth-container').style.display = 'block';
         document.getElementById('admin-main-area').style.display = 'none';
+        (async () => {
+          const isSetup = await checkAdminSetup();
+          if (isSetup) {
+            document.getElementById('admin-login-section').style.display = 'block';
+            document.getElementById('admin-setup-section').style.display = 'none';
+          } else {
+            document.getElementById('admin-login-section').style.display = 'none';
+            document.getElementById('admin-setup-section').style.display = 'block';
+          }
+        })();
       }
-      // Set up event listeners for login/setup forms (same as previous)
-      // ... (include all event bindings from previous admin)
     }
 
-    // ==================== BOOT ====================
-    // Password overlay already shown. When authorized, we call initializeAdmin().
-    // The unlock function will call initializeAdmin after password.
-
-    // Add a log entry for page load
+    // Start the app
+    console.log('POPPY ESPORTS Admin loaded with password protection.');
     addLog('info', 'Admin panel loaded.');
-
-    // --- inject logging into existing actions ---
-    // We'll wrap or extend functions. Since we can't easily modify all, we'll add log calls in the event handlers.
-    // For example, after tournament save, log it.
-    // I'll include those in the full code.
-
-    // ==================== FULL CODE CONTINUES ====================
-    // (All the remaining JavaScript functions from the previous admin.html go here)
-    // I'm including them in the actual file – I'll not paste them again here for brevity,
-    // but the final delivered file will have everything.
-
-    console.log('Admin panel ready with password protection and logs.');
   </script>
 </body>
 </html>
