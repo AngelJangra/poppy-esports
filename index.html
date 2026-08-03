@@ -600,62 +600,68 @@
 
         // 8. FETCH UID DATA
         fetchUidBtn.addEventListener('click', async () => {
-            const uid = ffUidInput.value.trim();
-            if (!uid) {
-                uidMessage.textContent = 'Please enter a Free Fire UID.';
-                return;
-            }
-            // Check if UID already exists
-            const { data: existing, error: checkErr } = await supabaseClient
-                .from('users')
-                .select('free_fire_uid')
-                .eq('free_fire_uid', uid)
-                .maybeSingle();
-            if (existing) {
-                uidMessage.textContent = '❌ This UID is already registered with another account.';
-                return;
-            }
+    const uid = ffUidInput.value.trim();
+    if (!uid) {
+        uidMessage.textContent = 'Please enter a Free Fire UID.';
+        return;
+    }
 
-            uidMessage.textContent = 'Fetching data...';
-            fetchUidBtn.disabled = true;
+    // Check if UID already exists (keep this part)
+    const { data: existing, error: checkErr } = await supabaseClient
+        .from('users')
+        .select('free_fire_uid')
+        .eq('free_fire_uid', uid)
+        .maybeSingle();
+    if (existing) {
+        uidMessage.textContent = '❌ This UID is already registered with another account.';
+        return;
+    }
 
-            try {
-                const response = await fetch(`http://187.127.175.208:5000/Bmw?uid=${uid}`);
-                if (!response.ok) throw new Error('API request failed');
-                const data = await response.json();
+    uidMessage.textContent = 'Fetching data...';
+    fetchUidBtn.disabled = true;
 
-                const clan = data.clanBasicInfo || {};
-                const captain = data.captainBasicInfo || {};
+    try {
+        // USE YOUR PROXY INSTEAD OF DIRECT HTTP
+        const response = await fetch(`/api/fetch-ff-data?uid=${uid}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'API request failed');
+        }
+        const data = await response.json();
 
-                fetchedUidData = {
-                    uid: uid,
-                    clanId: clan.clanId || '',
-                    clanName: clan.clanName || 'N/A',
-                    captainId: captain.accountId || '',
-                    captainNickname: captain.nickname || 'N/A',
-                    captainLevel: captain.level || 0,
-                    captainRegion: captain.region || 'N/A'
-                };
+        // ... rest of your logic (extract clan, captain, show preview, etc.)
+        const clan = data.clanBasicInfo || {};
+        const captain = data.captainBasicInfo || {};
 
-                previewClanName.textContent = fetchedUidData.clanName;
-                previewClanId.textContent = fetchedUidData.clanId;
-                previewCaptain.textContent = fetchedUidData.captainNickname;
-                previewCaptainLevel.textContent = fetchedUidData.captainLevel;
-                previewRegion.textContent = fetchedUidData.captainRegion;
-                ffPreviewContainer.style.display = 'block';
-                verifyUidBtn.disabled = false;
-                uidMessage.textContent = '✅ Verified successfully. Click "Verify & Create Account" to finish.';
-                uidMessage.style.color = '#4caf50';
+        fetchedUidData = {
+            uid: uid,
+            clanId: clan.clanId || '',
+            clanName: clan.clanName || 'N/A',
+            captainId: captain.accountId || '',
+            captainNickname: captain.nickname || 'N/A',
+            captainLevel: captain.level || 0,
+            captainRegion: captain.region || 'N/A'
+        };
 
-            } catch (err) {
-                uidMessage.textContent = '❌ Error fetching UID: ' + err.message;
-                uidMessage.style.color = '#ff6b6b';
-                ffPreviewContainer.style.display = 'none';
-                verifyUidBtn.disabled = true;
-            } finally {
-                fetchUidBtn.disabled = false;
-            }
-        });
+        previewClanName.textContent = fetchedUidData.clanName;
+        previewClanId.textContent = fetchedUidData.clanId;
+        previewCaptain.textContent = fetchedUidData.captainNickname;
+        previewCaptainLevel.textContent = fetchedUidData.captainLevel;
+        previewRegion.textContent = fetchedUidData.captainRegion;
+        ffPreviewContainer.style.display = 'block';
+        verifyUidBtn.disabled = false;
+        uidMessage.textContent = '✅ Verified successfully. Click "Verify & Create Account" to finish.';
+        uidMessage.style.color = '#4caf50';
+
+    } catch (err) {
+        uidMessage.textContent = '❌ Error fetching UID: ' + err.message;
+        uidMessage.style.color = '#ff6b6b';
+        ffPreviewContainer.style.display = 'none';
+        verifyUidBtn.disabled = true;
+    } finally {
+        fetchUidBtn.disabled = false;
+    }
+});
 
         // 9. VERIFY & CREATE ACCOUNT
         verifyUidBtn.addEventListener('click', async () => {
