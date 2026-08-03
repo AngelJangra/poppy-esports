@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        /* ----- Reset & Base ----- */
+        /* (same styles as before – unchanged) */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -15,7 +15,6 @@
             color: #fff;
             min-height: 100vh;
             overflow-x: hidden;
-            /* Animated gradient background */
             background: linear-gradient(-45deg, #0a0a1a, #1a1a3e, #0d0d2b, #1a0a2e);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -25,8 +24,6 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
-        /* ----- Glow overlay (subtle) ----- */
         body::after {
             content: '';
             position: fixed;
@@ -38,8 +35,6 @@
             pointer-events: none;
             z-index: 0;
         }
-
-        /* ----- Container ----- */
         .container {
             position: relative;
             z-index: 1;
@@ -47,8 +42,6 @@
             margin: 0 auto;
             padding: 20px 16px 40px;
         }
-
-        /* ----- Logo ----- */
         .logo-wrap {
             text-align: center;
             padding: 30px 0 10px;
@@ -63,8 +56,6 @@
             transition: transform 0.4s ease;
         }
         .logo-main:hover { transform: scale(1.05) rotate(-2deg); }
-
-        /* ----- Hero Text ----- */
         .hero-title {
             font-size: 2.2rem;
             font-weight: 800;
@@ -81,8 +72,6 @@
             margin-top: 4px;
             animation: fadeInUp 1s ease 0.4s both;
         }
-
-        /* ----- Auth Box ----- */
         .auth-box {
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(12px);
@@ -114,7 +103,6 @@
         }
         .step.active { background: #00aaff; box-shadow: 0 0 20px rgba(0, 170, 255, 0.4); }
         .step.done { background: #00ff88; }
-
         .auth-title {
             text-align: center;
             font-size: 1.4rem;
@@ -138,7 +126,6 @@
             box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.15);
         }
         .auth-input::placeholder { color: #666; }
-
         .auth-btn {
             width: 100%;
             padding: 14px;
@@ -154,7 +141,6 @@
         }
         .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .auth-btn:active { transform: scale(0.97); }
-
         .auth-toggle {
             display: block;
             text-align: center;
@@ -165,7 +151,6 @@
             transition: 0.2s;
         }
         .auth-toggle:hover { opacity: 0.7; }
-
         .forgot-link {
             display: block;
             text-align: center;
@@ -176,15 +161,12 @@
             transition: 0.2s;
         }
         .forgot-link:hover { color: #00aaff; }
-
         .auth-message {
             margin-top: 12px;
             text-align: center;
             font-size: 0.95rem;
             min-height: 24px;
         }
-
-        /* ----- UID Preview ----- */
         .ff-preview {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 16px;
@@ -200,7 +182,6 @@
         }
         .ff-preview .label { color: #888; }
         .ff-preview .value { color: #00ff88; font-weight: 600; }
-
         .warning-text {
             color: #ffaa00;
             font-size: 0.85rem;
@@ -209,8 +190,6 @@
             align-items: center;
             gap: 6px;
         }
-
-        /* ----- Social Links ----- */
         .social-links {
             display: flex;
             justify-content: center;
@@ -223,7 +202,6 @@
             transition: 0.3s;
         }
         .social-links a:hover { color: #00aaff; transform: translateY(-3px); }
-
         .credits {
             text-align: center;
             color: #555;
@@ -231,8 +209,6 @@
             margin-top: 16px;
         }
         .credits strong { color: #fff; }
-
-        /* ----- Features Grid ----- */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -267,8 +243,6 @@
             color: #fff;
             letter-spacing: 0.5px;
         }
-
-        /* ----- Modal ----- */
         .feature-modal {
             position: fixed;
             top: 0;
@@ -310,8 +284,6 @@
             font-weight: 700;
             cursor: pointer;
         }
-
-        /* ----- Footer ----- */
         .footer {
             text-align: center;
             padding: 30px 0 10px;
@@ -334,8 +306,6 @@
             font-size: 0.7rem;
             margin-top: 12px;
         }
-
-        /* ----- Animations ----- */
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -344,8 +314,6 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* ----- Scrollbar (Android) ----- */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #00aaff; border-radius: 4px; }
@@ -353,23 +321,19 @@
 </head>
 <body>
     <div class="container">
-        <!-- Logo -->
         <div class="logo-wrap">
             <img src="POPPY_ESPORTS.png" alt="POPPY ESPORTS" class="logo-main">
         </div>
 
-        <!-- Hero -->
         <h1 class="hero-title">POPPY ESPORTS</h1>
         <p class="hero-sub">India’s Most Trusted Free Fire Tournament Platform</p>
 
-        <!-- Auth Box -->
         <div class="auth-box" id="authContainer">
             <div class="step-indicator" id="stepIndicator">
                 <div class="step active" id="step1">1</div>
                 <div class="step" id="step2">2</div>
             </div>
 
-            <!-- Step 1 -->
             <div id="step1Content">
                 <h2 class="auth-title" id="authTitle">Login</h2>
                 <form id="authForm">
@@ -385,7 +349,6 @@
                 <div class="auth-message" id="authMessage"></div>
             </div>
 
-            <!-- Step 2 -->
             <div id="step2Content" style="display:none;">
                 <h2 class="auth-title">Verify Free Fire UID</h2>
                 <p style="color:#aaa; font-size:0.9rem; text-align:center; margin-bottom:16px;">Enter your Free Fire UID to fetch your details.</p>
@@ -406,7 +369,6 @@
             </div>
         </div>
 
-        <!-- Social & Credits -->
         <div class="social-links">
             <a href="#" id="telegramLink" target="_blank"><i class="bi bi-telegram"></i></a>
             <a href="#" id="discordLink" target="_blank"><i class="bi bi-discord"></i></a>
@@ -417,7 +379,6 @@
             Developed by <strong>YourPOPPY42</strong> · © 2025
         </div>
 
-        <!-- Features -->
         <div class="features-grid">
             <div class="feat-card" onclick="showDetail('Anti-Cheat','Advanced military-grade shield to block all types of hacks and ensures 100% fair play.')">
                 <i class="bi bi-shield-check"></i><h4>ANTI-CHEAT</h4>
@@ -445,7 +406,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <div class="footer">
             <div class="motivation">Join the battle. Win real rewards.</div>
             <div class="footer-copy">POPPY ESPORTS | &copy; 2025</div>
@@ -465,7 +425,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – Landing Page (Modern UI + Animations)
+        // POPPY ESPORTS – Landing Page (with re‑signup support)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -594,7 +554,6 @@
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (isLogin) {
-                // LOGIN
                 const email = authEmail.value.trim();
                 const password = authPassword.value;
                 if (!email || !password) {
@@ -614,7 +573,6 @@
                     authMessage.style.color = '#ff6b6b';
                 }
             } else {
-                // SIGNUP – validate and move to step 2
                 const name = authName.value.trim();
                 const phone = authPhone.value.trim();
                 const email = authEmail.value.trim();
@@ -711,7 +669,7 @@
             }
         });
 
-        // ============ VERIFY & CREATE ACCOUNT ============
+        // ============ VERIFY & CREATE ACCOUNT (re‑signup support) ============
         verifyUidBtn.addEventListener('click', async () => {
             if (!fetchedUidData) {
                 uidMessage.textContent = 'Please fetch UID data first.';
@@ -724,7 +682,139 @@
             try {
                 const { name, phone, email, password, referral } = signupData;
 
-                // ---- CHECK IF EMAIL ALREADY EXISTS IN AUTH ----
+                // ---- CHECK IF EMAIL EXISTS IN USERS TABLE ----
+                const { data: existingUser, error: checkErr } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .maybeSingle();
+
+                // ---- IF EXISTS AND IS DELETED, REACTIVATE IT ----
+                if (existingUser && existingUser.deleted === true) {
+                    console.log('Re‑activating deleted account for email:', email);
+                    // Update the existing row with new data
+                    const updatedProfile = {
+                        display_name: name,
+                        phone_number: phone,
+                        balance: 10,
+                        winning_cash: 0,
+                        bonus_cash: 10,
+                        status: 'active',
+                        referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
+                        referred_by: null,
+                        total_matches: 0,
+                        won_matches: 0,
+                        total_earnings: 0,
+                        referral_earnings: 0,
+                        free_fire_uid: fetchedUidData.uid,
+                        ff_nickname: fetchedUidData.nickname,
+                        ff_clan_id: fetchedUidData.clanId,
+                        ff_clan_name: fetchedUidData.clanName,
+                        ff_captain_id: '',
+                        ff_captain_nickname: '',
+                        ff_captain_level: 0,
+                        ff_captain_region: '',
+                        ff_verified: true,
+                        deleted: false,
+                        joined_tournaments: {},
+                        total_referred_spending: 0,
+                        referral_earnings_from_spending: 0,
+                        last_login: new Date()
+                    };
+
+                    const { error: updateErr } = await supabaseClient
+                        .from('users')
+                        .update(updatedProfile)
+                        .eq('id', existingUser.id);
+                    if (updateErr) throw updateErr;
+
+                    // Now, if a new referral code is provided, credit the new referrer
+                    if (referral) {
+                        const { data: referrer, error: refErr } = await supabaseClient
+                            .from('users')
+                            .select('id, balance, bonus_cash, referral_earnings')
+                            .eq('referral_code', referral)
+                            .single();
+
+                        if (!refErr && referrer) {
+                            const bonusAmount = 10;
+                            const newBalance = (referrer.balance || 0) + bonusAmount;
+                            const newBonus = (referrer.bonus_cash || 0) + bonusAmount;
+                            const newRefEarnings = (referrer.referral_earnings || 0) + bonusAmount;
+
+                            await supabaseClient
+                                .from('users')
+                                .update({
+                                    balance: newBalance,
+                                    bonus_cash: newBonus,
+                                    referral_earnings: newRefEarnings
+                                })
+                                .eq('id', referrer.id);
+
+                            await supabaseClient
+                                .from('users')
+                                .update({ referred_by: referrer.id })
+                                .eq('id', existingUser.id);
+
+                            await supabaseClient
+                                .from('transactions')
+                                .insert([{
+                                    user_id: referrer.id,
+                                    type: 'referral_bonus',
+                                    amount: bonusAmount,
+                                    description: `Referral bonus for inviting ${email}`,
+                                    timestamp: new Date(),
+                                    balance_after: newBalance
+                                }]);
+
+                            await supabaseClient
+                                .from('pending_referrals')
+                                .insert([{
+                                    referrer_uid: referrer.id,
+                                    referred_uid: existingUser.id,
+                                    status: 'credited',
+                                    timestamp: new Date(),
+                                    credited_at: new Date(),
+                                    bonus_amount: bonusAmount
+                                }]);
+
+                            console.log(`Referral bonus ₹${bonusAmount} credited to ${referrer.id}`);
+                        }
+                    }
+
+                    // Auto‑login and redirect
+                    const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (signInError) throw signInError;
+                    window.location.href = '/user';
+                    return;
+                }
+
+                // ---- IF EXISTS AND NOT DELETED, PROMPT TO LOGIN ----
+                if (existingUser) {
+                    // Account exists and is active
+                    uidMessage.textContent = '❌ Email already registered. Please login.';
+                    uidMessage.style.color = '#ffaa00';
+                    verifyUidBtn.disabled = false;
+                    // Switch to login mode after delay
+                    setTimeout(() => {
+                        isLogin = true;
+                        authTitle.textContent = 'Login';
+                        authSubmitBtn.textContent = 'Login';
+                        authToggle.textContent = "Don't have an account? Sign Up";
+                        authName.style.display = 'none';
+                        authPhone.style.display = 'none';
+                        authReferral.style.display = 'none';
+                        step1Content.style.display = 'block';
+                        step2Content.style.display = 'none';
+                        step1.className = 'step active';
+                        step2.className = 'step';
+                        authMessage.textContent = 'That email is already registered. Please login.';
+                        authMessage.style.color = '#ffaa00';
+                    }, 1500);
+                    return;
+                }
+
+                // ---- NEW SIGNUP ----
                 let authData, authError;
                 try {
                     const result = await supabaseClient.auth.signUp({
@@ -738,24 +828,24 @@
                     authError = e;
                 }
 
+                // If user already registered in Auth but profile missing (should not happen often)
                 if (authError && authError.message.includes('User already registered')) {
-                    // Email exists – try to create missing profile or login
-                    const { data: existingUser } = await supabaseClient
+                    // Try to sign in to get the user ID, then create profile
+                    const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (signInError) {
+                        uidMessage.textContent = '❌ Account exists but password incorrect. Please reset password.';
+                        uidMessage.style.color = '#ffaa00';
+                        verifyUidBtn.disabled = false;
+                        return;
+                    }
+                    const userId = signInData.user.id;
+                    // Check if profile exists, if not create one
+                    const { data: existingProfile } = await supabaseClient
                         .from('users')
-                        .select('*')
-                        .eq('email', email)
+                        .select('id')
+                        .eq('id', userId)
                         .maybeSingle();
-
-                    if (!existingUser) {
-                        // Profile missing – sign in to get user ID
-                        const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
-                        if (signInError) {
-                            uidMessage.textContent = '❌ Account exists but password is incorrect. Please reset your password.';
-                            uidMessage.style.color = '#ffaa00';
-                            verifyUidBtn.disabled = false;
-                            return;
-                        }
-                        const userId = signInData.user.id;
+                    if (!existingProfile) {
                         const newProfile = {
                             id: userId,
                             email,
@@ -771,24 +861,54 @@
                             ff_nickname: fetchedUidData.nickname,
                             ff_clan_id: fetchedUidData.clanId,
                             ff_clan_name: fetchedUidData.clanName,
-                            ff_verified: true
+                            ff_verified: true,
+                            deleted: false
                         };
-                        const { error: insertError } = await supabaseClient.from('users').insert([newProfile]);
-                        if (insertError) throw insertError;
-                        window.location.href = '/user';
-                        return;
-                    } else {
-                        // Profile exists – just login
-                        const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
-                        if (signInError) {
-                            uidMessage.textContent = '❌ Password incorrect. Please reset your password.';
-                            uidMessage.style.color = '#ffaa00';
-                            verifyUidBtn.disabled = false;
-                            return;
-                        }
-                        window.location.href = '/user';
-                        return;
+                        await supabaseClient.from('users').insert([newProfile]);
                     }
+                    // Handle referral if any
+                    if (referral) {
+                        const { data: referrer } = await supabaseClient
+                            .from('users')
+                            .select('id, balance')
+                            .eq('referral_code', referral)
+                            .single();
+                        if (referrer) {
+                            const bonusAmount = 10;
+                            const newBalance = (referrer.balance || 0) + bonusAmount;
+                            await supabaseClient
+                                .from('users')
+                                .update({ balance: newBalance })
+                                .eq('id', referrer.id);
+                            await supabaseClient
+                                .from('users')
+                                .update({ referred_by: referrer.id })
+                                .eq('id', userId);
+                            await supabaseClient
+                                .from('transactions')
+                                .insert([{
+                                    user_id: referrer.id,
+                                    type: 'referral_bonus',
+                                    amount: bonusAmount,
+                                    description: `Referral bonus for inviting ${email}`,
+                                    timestamp: new Date(),
+                                    balance_after: newBalance
+                                }]);
+                            await supabaseClient
+                                .from('pending_referrals')
+                                .insert([{
+                                    referrer_uid: referrer.id,
+                                    referred_uid: userId,
+                                    status: 'credited',
+                                    timestamp: new Date(),
+                                    credited_at: new Date(),
+                                    bonus_amount: bonusAmount
+                                }]);
+                        }
+                    }
+                    // Auto‑login already happened via signInWithPassword above, redirect
+                    window.location.href = '/user';
+                    return;
                 }
 
                 if (authError) throw authError;
@@ -823,7 +943,8 @@
                     ff_captain_nickname: '',
                     ff_captain_level: 0,
                     ff_captain_region: '',
-                    ff_verified: true
+                    ff_verified: true,
+                    deleted: false
                 };
 
                 const { error: profileError } = await supabaseClient.from('users').insert([profile]);
@@ -841,14 +962,14 @@
                         const bonusAmount = 10;
                         const newBalance = (referrer.balance || 0) + bonusAmount;
                         const newBonus = (referrer.bonus_cash || 0) + bonusAmount;
-                        const newReferralEarnings = (referrer.referral_earnings || 0) + bonusAmount;
+                        const newRefEarnings = (referrer.referral_earnings || 0) + bonusAmount;
 
                         await supabaseClient
                             .from('users')
                             .update({
                                 balance: newBalance,
                                 bonus_cash: newBonus,
-                                referral_earnings: newReferralEarnings
+                                referral_earnings: newRefEarnings
                             })
                             .eq('id', referrer.id);
 
@@ -936,7 +1057,6 @@
         function closeDetail() {
             document.getElementById('featureModal').classList.remove('active');
         }
-        // Close modal on backdrop click
         document.getElementById('featureModal').addEventListener('click', function(e) {
             if (e.target === this) closeDetail();
         });
