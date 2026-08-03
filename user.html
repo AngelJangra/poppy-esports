@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* (same styles – unchanged) */
         body { background: #0b0b1a; color: #fff; font-family: 'Poppins', sans-serif; padding: 20px; }
         .tournament-card { background: #1a1a2e; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a2a4a; transition: 0.3s; }
         .tournament-card:hover { border-color: #00aaff; box-shadow: 0 0 20px rgba(0,170,255,0.2); }
@@ -21,13 +20,15 @@
         .user-info { color: #aaa; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .logout-btn { background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 5px 15px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
         .logout-btn:hover { background: #ff4444; color: #fff; }
+        .delete-btn { background: transparent; border: 1px solid #ff6b6b; color: #ff6b6b; padding: 5px 15px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .delete-btn:hover { background: #ff6b6b; color: #fff; }
         .section-title { color: #fff; margin-bottom: 20px; }
         .no-tournaments { color: #666; text-align: center; padding: 40px; }
         .referral-banner { background: #1a1a2e; padding: 15px; border-radius: 12px; border-left: 4px solid #00ff88; margin-bottom: 20px; }
         .referral-banner strong { color: #00ff88; }
         .slots-remaining { background: #2a2a4a; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; }
         .slots-full { color: #ff4444; }
-        .ff-verified-badge { background: #1a1a2e; padding: 8px 16px; border-radius: 20px; border-left: 3px solid #00ff88; display: inline-block; margin-bottom: 10px; }
+        .ff-badge { background: #1a1a2e; padding: 8px 16px; border-radius: 20px; border-left: 3px solid #00ff88; display: inline-block; margin-bottom: 10px; }
         .loading { text-align: center; padding: 40px; color: #888; }
     </style>
 </head>
@@ -40,14 +41,16 @@
         </div>
         <div class="user-info">
             <span id="userNameDisplay">User</span> | <span id="userBalance">₹0</span>
+            <button class="delete-btn" id="deleteAccountBtn">Delete Account</button>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
     </div>
 
-    <!-- Verified UID & Clan -->
-    <div class="ff-verified-badge" id="ffBadge">
+    <!-- Free Fire Badge (shows UID + Nickname) -->
+    <div class="ff-badge" id="ffBadge">
         <i class="bi bi-check-circle-fill" style="color: #00ff88;"></i>
-        Verified UID: <strong id="ffUidDisplay">----</strong> | Clan: <span id="ffClanDisplay">----</span>
+        UID: <strong id="ffUidDisplay">----</strong> | Nickname: <span id="ffNicknameDisplay">----</span>
+        <span style="margin-left: 15px; color: #888;">Clan: <span id="ffClanDisplay">N/A</span></span>
     </div>
 
     <!-- Referral Banner -->
@@ -65,7 +68,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (Duplicate Email Resolved)
+        // POPPY ESPORTS – User Dashboard (with Nickname & Delete Account)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -82,50 +85,68 @@
         const referralCodeDisplay = document.getElementById('referralCodeDisplay');
         const tournamentsContainer = document.getElementById('tournamentsContainer');
         const logoutBtn = document.getElementById('logoutBtn');
+        const deleteBtn = document.getElementById('deleteAccountBtn');
         const ffUidDisplay = document.getElementById('ffUidDisplay');
+        const ffNicknameDisplay = document.getElementById('ffNicknameDisplay');
         const ffClanDisplay = document.getElementById('ffClanDisplay');
         const ffBadge = document.getElementById('ffBadge');
 
-        // ============ CREATE PROFILE IF MISSING (with email conflict handling) ============
+        // ============ DELETE ACCOUNT ============
+        deleteBtn.addEventListener('click', async () => {
+            if (!currentUser) return;
+            if (!confirm('⚠️ Are you sure you want to delete your account? This action cannot be undone!')) return;
+
+            try {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = 'Deleting...';
+
+                // Delete the user's row from the users table
+                const { error: delError } = await supabaseClient
+                    .from('users')
+                    .delete()
+                    .eq('id', currentUser.id);
+
+                if (delError) throw delError;
+
+                // Sign out
+                await supabaseClient.auth.signOut();
+                // Redirect to home
+                window.location.href = '/';
+            } catch (err) {
+                console.error('Delete account error:', err);
+                alert('Error deleting account: ' + err.message);
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Delete Account';
+            }
+        });
+
+        // ============ ENSURE PROFILE (with nickname support) ============
         async function ensureProfile(user) {
-            // First, try to fetch by id
+            // Try by ID
             let { data: existing, error } = await supabaseClient
                 .from('users')
                 .select('*')
                 .eq('id', user.id)
                 .maybeSingle();
 
-            if (existing) {
-                return existing; // profile exists
-            }
+            if (existing) return existing;
 
-            // If not found by id, check by email
-            const { data: emailMatch, error: emailError } = await supabaseClient
+            // Check by email to avoid duplicate
+            const { data: emailMatch } = await supabaseClient
                 .from('users')
                 .select('*')
                 .eq('email', user.email)
                 .maybeSingle();
 
-            // If a row with the same email exists, delete it (orphaned) and insert a new one
             if (emailMatch) {
-                console.log('Found orphaned profile with same email. Deleting...');
-                const { error: delError } = await supabaseClient
-                    .from('users')
-                    .delete()
-                    .eq('email', user.email);
-                if (delError) {
-                    console.error('Failed to delete orphaned profile:', delError);
-                    // If delete fails, try to update the id (not recommended, but as last resort)
-                    // We'll just return the existing profile and hope it works
-                    return emailMatch;
-                }
+                // Delete orphaned row
+                await supabaseClient.from('users').delete().eq('email', user.email);
             }
 
-            // Create a fresh profile
-            console.log('Creating new profile for user', user.id);
+            // Create new profile
             const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
             const phone = user.user_metadata?.phone_number || '';
-
+            // We don't have FF nickname here, but we'll set it later if available
             const newProfile = {
                 id: user.id,
                 email: user.email,
@@ -143,6 +164,7 @@
                 total_earnings: 0,
                 referral_earnings: 0,
                 free_fire_uid: null,
+                ff_nickname: null,
                 ff_clan_id: null,
                 ff_clan_name: null,
                 ff_captain_id: null,
@@ -155,73 +177,39 @@
                 referral_earnings_from_spending: 0
             };
 
-            const { error: insertError } = await supabaseClient
-                .from('users')
-                .insert([newProfile]);
+            const { error: insertError } = await supabaseClient.from('users').insert([newProfile]);
+            if (insertError) throw insertError;
 
-            if (insertError) {
-                console.error('Failed to create new profile:', insertError);
-                // Try with minimal fields as fallback
-                const fallbackProfile = {
-                    id: user.id,
-                    email: user.email,
-                    display_name: displayName,
-                    phone_number: phone,
-                    balance: 10,
-                    winning_cash: 0,
-                    bonus_cash: 10,
-                    status: 'active',
-                    referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-                    created_at: new Date()
-                };
-                const { error: fallbackError } = await supabaseClient
-                    .from('users')
-                    .insert([fallbackProfile]);
-                if (fallbackError) {
-                    throw fallbackError;
-                }
-                // Fetch the newly created profile
-                const { data: fallbackData } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-                return fallbackData;
-            }
-
-            // Fetch the new profile
-            const { data: newData } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('id', user.id)
-                .single();
+            const { data: newData } = await supabaseClient.from('users').select('*').eq('id', user.id).single();
             return newData;
         }
 
-        // ============ AUTH STATE LISTENER ============
+        // ============ AUTH STATE ============
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             const user = session?.user || null;
             if (user) {
                 currentUser = user;
                 try {
-                    // Ensure profile exists, create if missing
                     userProfile = await ensureProfile(user);
 
                     // Update UI
                     userNameDisplay.textContent = userProfile.display_name || user.email;
                     userBalance.textContent = '₹' + (userProfile.balance || 0);
                     referralCodeDisplay.textContent = userProfile.referral_code || 'N/A';
+
+                    // FF details
                     if (userProfile.free_fire_uid) {
                         ffUidDisplay.textContent = userProfile.free_fire_uid;
+                        ffNicknameDisplay.textContent = userProfile.ff_nickname || 'N/A';
                         ffClanDisplay.textContent = userProfile.ff_clan_name || 'N/A';
                     } else {
                         ffBadge.style.display = 'none';
                     }
+
                     loadUpcomingTournaments();
                 } catch (err) {
                     console.error('Profile error:', err);
                     alert('Error loading profile. Please try again.');
-                    // Sign out and redirect to login
                     await supabaseClient.auth.signOut();
                     window.location.href = '/';
                 }
