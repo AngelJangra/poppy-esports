@@ -25,7 +25,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* ----- Header ----- */
         .header {
             display: flex;
             justify-content: space-between;
@@ -82,7 +81,6 @@
         .btn-outline.danger { border-color: #ff6b6b; color: #ff6b6b; }
         .btn-outline.danger:hover { background: #ff6b6b; color: #fff; }
 
-        /* ----- FF Badge ----- */
         .ff-badge {
             background: rgba(255,255,255,0.04);
             backdrop-filter: blur(8px);
@@ -103,7 +101,6 @@
         .ff-badge .nickname { color: #00aaff; font-weight: 600; }
         .ff-badge .clan { color: #888; }
 
-        /* ----- Referral Banner ----- */
         .referral-banner {
             background: linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,170,255,0.08));
             border: 1px solid rgba(0,255,136,0.15);
@@ -134,7 +131,6 @@
             letter-spacing: 1px;
         }
 
-        /* ----- Tournaments ----- */
         .section-title {
             font-size: 1.2rem;
             font-weight: 600;
@@ -216,7 +212,6 @@
             color: #666;
         }
 
-        /* ----- Animations ----- */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -269,7 +264,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (Modern UI)
+        // POPPY ESPORTS – User Dashboard (Delete Account fixes)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -291,26 +286,6 @@
         const ffNicknameDisplay = document.getElementById('ffNicknameDisplay');
         const ffClanDisplay = document.getElementById('ffClanDisplay');
         const ffBadge = document.getElementById('ffBadge');
-
-        // ============ DELETE ACCOUNT ============
-        deleteBtn.addEventListener('click', async () => {
-            if (!currentUser) return;
-            if (!confirm('⚠️ Are you sure you want to delete your account? This action cannot be undone!')) return;
-
-            try {
-                deleteBtn.disabled = true;
-                deleteBtn.textContent = 'Deleting...';
-                const { error: delError } = await supabaseClient.from('users').delete().eq('id', currentUser.id);
-                if (delError) throw delError;
-                await supabaseClient.auth.signOut();
-                window.location.href = '/';
-            } catch (err) {
-                console.error('Delete account error:', err);
-                alert('Error deleting account: ' + err.message);
-                deleteBtn.disabled = false;
-                deleteBtn.textContent = 'Delete';
-            }
-        });
 
         // ============ ENSURE PROFILE ============
         async function ensureProfile(user) {
@@ -361,7 +336,8 @@
                 ff_verified: false,
                 joined_tournaments: {},
                 total_referred_spending: 0,
-                referral_earnings_from_spending: 0
+                referral_earnings_from_spending: 0,
+                deleted: false
             };
 
             const { error: insertError } = await supabaseClient.from('users').insert([newProfile]);
@@ -371,6 +347,33 @@
             return newData;
         }
 
+        // ============ DELETE ACCOUNT (mark as deleted) ============
+        deleteBtn.addEventListener('click', async () => {
+            if (!currentUser) return;
+            if (!confirm('⚠️ Are you sure you want to delete your account? This action cannot be undone!')) return;
+
+            try {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = 'Deleting...';
+
+                // Mark as deleted instead of deleting the row
+                const { error: updateError } = await supabaseClient
+                    .from('users')
+                    .update({ deleted: true })
+                    .eq('id', currentUser.id);
+                if (updateError) throw updateError;
+
+                // Sign out and redirect
+                await supabaseClient.auth.signOut();
+                window.location.href = '/';
+            } catch (err) {
+                console.error('Delete account error:', err);
+                alert('Error deleting account: ' + err.message);
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Delete';
+            }
+        });
+
         // ============ AUTH STATE ============
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             const user = session?.user || null;
@@ -378,6 +381,16 @@
                 currentUser = user;
                 try {
                     userProfile = await ensureProfile(user);
+
+                    // ---- CHECK IF ACCOUNT IS DELETED ----
+                    if (userProfile.deleted === true) {
+                        console.log('Account is deleted. Signing out.');
+                        await supabaseClient.auth.signOut();
+                        window.location.href = '/';
+                        return;
+                    }
+
+                    // Update UI
                     userNameDisplay.textContent = userProfile.display_name || user.email;
                     userBalance.textContent = '₹' + (userProfile.balance || 0);
                     referralCodeDisplay.textContent = userProfile.referral_code || 'N/A';
