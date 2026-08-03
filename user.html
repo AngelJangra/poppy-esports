@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* (styles unchanged – same as before) */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Poppins', sans-serif;
@@ -257,7 +258,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (Fixed Tournament Join)
+        // POPPY ESPORTS – User Dashboard (Detailed Error Reporting)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -418,7 +419,7 @@
 
             if (error) {
                 console.error('Error loading tournaments:', error);
-                tournamentsContainer.innerHTML = `<div class="no-tournaments">Error loading tournaments.</div>`;
+                tournamentsContainer.innerHTML = `<div class="no-tournaments">Error loading tournaments: ${error.message}</div>`;
                 return;
             }
 
@@ -474,7 +475,7 @@
             });
         }
 
-        // ============ JOIN TOURNAMENT (FIXED) ============
+        // ============ JOIN TOURNAMENT (with full error details) ============
         async function joinTournament(tournamentId, fee) {
             if (!currentUser) return;
             if ((userProfile.balance || 0) < fee) {
@@ -495,7 +496,7 @@
 
             if (tError) {
                 console.error('Error fetching tournament:', tError);
-                alert('Error loading tournament details. Please try again.');
+                alert('Error loading tournament details: ' + tError.message);
                 return;
             }
 
