@@ -48,7 +48,7 @@ function showAdminSection(sectionId) {
   }
 }
 
-// ----- LEADERBOARD MANAGEMENT (placed here) -----
+// ----- LEADERBOARD MANAGEMENT -----
 async function loadLeaderboardManagementData() {
   const tbody = getElement('leaderboardMgtTableBody');
   clearStatus(getElement('leaderboardMgtStatus'));
@@ -103,7 +103,7 @@ getElement('saveLeaderboardBtn').addEventListener('click', async () => {
   showLoader(false);
 });
 
-// ----- USER ANALYTICS (placed here) -----
+// ----- USER ANALYTICS -----
 async function loadUserAnalyticsData() {
   const { data: deposits } = await supabaseClient.from('deposits').select('user_id, amount').eq('status', 'completed');
   const spenders = {};
@@ -162,9 +162,6 @@ async function loadGlobalNotificationHistory() {
   html += '</tbody></table>';
   historyEl.innerHTML = html;
 }
-
-// ----- BALANCE EDITOR (already in admin-users, but also here for completeness) -----
-// The balance editor is in admin-users.js
 
 // ----- REGISTERED PLAYERS MODAL -----
 async function openRegisteredPlayersModal(tournamentId, tournamentName) {
@@ -265,26 +262,25 @@ document.querySelectorAll('#adminSidebar .nav-link').forEach(link => {
   });
 });
 
-// ==================== INITIALIZATION ====================
-function initializeAdmin() {
-  const session = supabaseClient.auth.session();
+// ==================== INITIALIZATION (FIXED) ====================
+async function initializeAdmin() {
+  // Use getSession() instead of deprecated session()
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     // Auth listener will handle
   } else {
     document.getElementById('auth-container').style.display = 'block';
     document.getElementById('admin-main-area').style.display = 'none';
-    (async () => {
-      const isSetup = await checkAdminSetup();
-      if (isSetup) {
-        document.getElementById('admin-login-section').style.display = 'block';
-        document.getElementById('admin-setup-section').style.display = 'none';
-      } else {
-        document.getElementById('admin-login-section').style.display = 'none';
-        document.getElementById('admin-setup-section').style.display = 'block';
-      }
-    })();
+    const isSetup = await checkAdminSetup();
+    if (isSetup) {
+      document.getElementById('admin-login-section').style.display = 'block';
+      document.getElementById('admin-setup-section').style.display = 'none';
+    } else {
+      document.getElementById('admin-login-section').style.display = 'none';
+      document.getElementById('admin-setup-section').style.display = 'block';
+    }
   }
 }
 
-// Start
+// Start the app
 addLog('info', 'Admin panel loaded (split version).');
