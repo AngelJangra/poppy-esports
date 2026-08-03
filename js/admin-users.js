@@ -106,4 +106,82 @@ getElement('updateUserInfoForm').addEventListener('submit', async (e) => {
   const phone_number = getElement('userDetailPhoneInput').value.trim();
   if (!display_name) { showStatus(getElement('updateUserInfoStatus'), 'Name required.', 'warning'); return; }
   await supabaseClient.from('users').update({ display_name, phone_number }).eq('id', uid);
-  showStatus(getElement('updateUserInfoStatus'),
+  showStatus(getElement('updateUserInfoStatus'), 'Updated!', 'success', 3000);
+  loadUsers();
+  addLog('info', `User info updated for ${uid}`);
+});
+
+getElement('updateBalanceForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const uid = getElement('editUserUid').value;
+  const amount = parseFloat(getElement('balanceUpdateAmount').value);
+  const type = getElement('balanceUpdateType').value;
+  const reason = getElement('balanceUpdateReason').value.trim();
+  if (!uid || isNaN(amount) || !type || !reason) { showStatus(getElement('balanceUpdateStatus'), 'All fields required.', 'warning'); return; }
+  const { data: user } = await supabaseClient.from('users').select('balance, winning_cash, bonus_cash').eq('id', uid).single();
+  if (!user) { showStatus(getElement('balanceUpdateStatus'), 'User not found.', 'danger'); return; }
+  let newBalance = user.balance, newWinning = user.winning_cash, newBonus = user.bonus_cash;
+  if (type === 'balance') newBalance += amount;
+  else if (type === 'winningCash') { newWinning += amount; newBalance += amount; }
+  else if (type === 'bonusCash') { newBonus += amount; newBalance += amount; }
+  if (newWinning < 0 || newBonus < 0 || newBalance < 0) { showStatus(getElement('balanceUpdateStatus'), 'Balance cannot be negative.', 'warning'); return; }
+  await supabaseClient.from('users').update({ balance: newBalance, winning_cash: newWinning, bonus_cash: newBonus }).eq('id', uid);
+  await supabaseClient.from('transactions').insert([{ user_id: uid, type: 'admin_balance_edit', amount: amount, description: reason, timestamp: new Date(), balance_after: newBalance, admin_uid: currentAdminUser.id }]);
+  showStatus(getElement('balanceUpdateStatus'), `Updated! New total: ${formatCurrency(newBalance)}`, 'success', 3000);
+  loadUsers();
+  openUserModal(uid);
+  addLog('info', `Balance updated for ${uid}: ${formatCurrency(amount)} (${reason})`);
+});
+
+// ----- SELECTIVE NOTIFICATION -----
+function updateSelectedUserNotificationUI() {
+  const checkboxes = document.querySelectorAll('#usersTableBody .user-select-checkbox:checked');
+  const count = checkboxes.length;
+  getElement('selectedUserCount').textContent = count;
+  getElement('sendToSelectedUsersBtn').disabled = count === 0;
+  const all = document.querySelectorAll('#usersTableBody .user-select-checkbox');
+  const checkedAll = document.querySelectorAll('#usersTableBody .user-select-checkbox:checked');
+  const selectAll = getElement('selectAllUsersCheckbox');
+  if (all.length > 0) { selectAll.checked = all.length === checkedAll.length; selectAll.indeterminate = checkedAll.length > 0 && checkedAll.length < all.length; }
+  else { selectAll.checked = false; selectAll.indeterminate = false; }
+}
+
+document.addEventListener('change', (e) => {
+  if (e.target.classList.contains('user-select-checkbox')) updateSelectedUserNotificationUI();
+});
+
+getElement('selectAllUsersCheckbox').addEventListener('change', (e) => {
+  document.querySelectorAll('#usersTableBody .user-select-checkbox').forEach(cb => cb.checked = e.target.checked);
+  updateSelectedUserNotificationUI();
+});
+
+getElement('sendSelectiveNotificationBtn').addEventListener('click', async () => {
+  const title = getElement('selectiveNotifTitle').value.trim();
+  const message = getElement('selectiveNotifMessage').value.trim();
+  const imageUrl = getElement('selectiveNotifImageUrl').value.trim();
+  if (!title || !message) { showStatus(getElement('selectiveNotificationStatus'), 'Title and Message required.', 'warning'); return; }
+  const selected = document.querySelectorAll('#usersTableBody .user-select-checkbox:checked');
+  const uids = Array.from(selected).map(cb => cb.dataset.uid);
+  if (uids.length === 0) { showStatus(getElement('selectiveNotificationStatus'), 'No users selected.', 'warning'); return; }
+  showLoader(true);
+  const notifData = { title, message, image_url: imageUrl || null, timestamp: new Date() };
+  for (const uid of uids) await supabaseClient.from('user_notifications').insert([{ ...notifData, user_id: uid }]);
+  showStatus(getElement('usersStatus'), `Sent to ${uids.length} users.`, 'success', 3000);
+  bootstrap.Modal.getInstance(getElement('selectiveNotificationModal')).hide();
+  addLog('info', `Selective notification sent to ${uids.length} users`);
+  showLoader(false);
+});
+
+// ----- INDIVIDUAL NOTIFICATION (inside modal) -----
+getElement('individualNotificationForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const uid = getElement('editUserUid').value;
+  const title = getElement('individualNotifTitle').value.trim();
+  const message = getElement('individualNotifMessage').value.trim();
+  const imageUrl = getElement('individualNotifImageUrl').value.trim();
+  if (!uid || !title || !message) { showStatus(getElement('individualNotificationStatus'), 'All fields required.', 'warning'); return; }
+  await supabaseClient.from('user_notifications').insert([{ user_id: uid, title, message, image_url: imageUrl || null, timestamp: new Date() }]);
+  showStatus(getElement('individualNotificationStatus'), 'Sent!', 'success', 3000);
+  getElement('individualNotificationForm').reset();
+  addLog('info', `Individual notification sent to ${uid}`);
+});
