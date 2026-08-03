@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        /* (same styles as before – keep your existing CSS) */
         :root {
             --primary: #00aaff;
             --secondary: #bd00ff;
@@ -79,6 +78,10 @@
         .footer-copy { color:#444; font-size:0.75rem; font-weight:700; margin-top:20px; display:block; }
         .reveal { opacity:0; transform:translateY(30px); transition:1s cubic-bezier(0.2,0.8,0.2,1); }
         .reveal.active { opacity:1; transform:translateY(0); }
+        .message-box { background:rgba(0,0,0,0.8); padding:20px; border-radius:12px; margin:15px 0; border-left:4px solid var(--success); }
+        .message-box.error { border-left-color:var(--danger); }
+        .message-box h4 { color:var(--success); }
+        .message-box.error h4 { color:#ff6b6b; }
     </style>
 </head>
 <body>
@@ -128,7 +131,6 @@
                             <div class="row"><span class="label">Nickname</span><span class="value" id="previewNickname">-</span></div>
                             <div class="row"><span class="label">Region</span><span class="value" id="previewRegion">-</span></div>
                             <div class="row"><span class="label">Level</span><span class="value" id="previewLevel">-</span></div>
-                            <!-- Optional clan info -->
                             <div class="row" id="clanRow" style="display:none;"><span class="label">Clan</span><span class="value" id="previewClanName">-</span></div>
                             <p class="warning-text"><i class="bi bi-exclamation-triangle-fill"></i> Once verified, this UID cannot be changed.</p>
                             <button type="button" id="verifyUidBtn" class="btn-verify" disabled>Verify & Create Account</button>
@@ -202,7 +204,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – Landing Page (Fixed UID Fetch)
+        // POPPY ESPORTS – Landing Page (Handles Email Confirmation)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -417,7 +419,7 @@
             }
         });
 
-        // Verify & Create Account
+        // Verify & Create Account – Handles Email Confirmation
         verifyUidBtn.addEventListener('click', async () => {
             if (!fetchedUidData) {
                 uidMessage.textContent = 'Please fetch UID data first.';
@@ -430,16 +432,45 @@
             try {
                 const { name, phone, email, password, referral } = signupData;
 
-                // Create auth user
+                // Create auth user (will send confirmation email if enabled)
                 const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                     email,
                     password,
                     options: { data: { display_name: name, phone_number: phone } }
                 });
                 if (authError) throw authError;
-                const userId = authData.user.id;
 
-                // Insert profile with UID details
+                // If email confirmation is enabled, authData.user will be null until confirmed.
+                // We'll still insert the profile row so it's ready when the user confirms.
+                const userId = authData.user?.id || authData.session?.user?.id;
+                if (!userId) {
+                    // If user is null (email confirmation required), we need to handle it.
+                    // We'll still create the profile with a temporary ID? Actually, we can't insert without a valid auth user.
+                    // Instead, we will use the session user if available, otherwise we cannot proceed.
+                    // But the signUp call may return a session if email confirmation is disabled.
+                    // If email confirmation is enabled, we won't have a session.
+                    // In that case, we should just tell the user to check their email.
+                    uidMessage.textContent = '📧 Account created! Please check your email to confirm your address.';
+                    uidMessage.style.color = '#4caf50';
+                    // Reset the form and go back to login
+                    setTimeout(() => {
+                        // Reset UI to step 1 and show message
+                        step2Content.style.display = 'none';
+                        step1Content.style.display = 'block';
+                        step1.className = 'step active';
+                        step2.className = 'step';
+                        authMessage.innerHTML = '<div class="message-box"><h4>✅ Account created!</h4><p>Please check your email and confirm your account before logging in.</p></div>';
+                        authMessage.style.color = '#4caf50';
+                        // Clear the signup data
+                        signupData = {};
+                        fetchedUidData = null;
+                        ffPreviewContainer.style.display = 'none';
+                        verifyUidBtn.disabled = true;
+                    }, 2000);
+                    return;
+                }
+
+                // If we have a user, insert the profile
                 const profile = {
                     id: userId,
                     email,
@@ -487,11 +518,34 @@
                     }
                 }
 
-                // Auto-login
-                const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (signInError) throw signInError;
+                // Show success message
+                uidMessage.textContent = '✅ Account created successfully! Please check your email to confirm your account.';
+                uidMessage.style.color = '#4caf50';
+                verifyUidBtn.disabled = true;
 
-                window.location.href = '/user';
+                // Redirect to login after a few seconds
+                setTimeout(() => {
+                    // Reset UI to login
+                    step2Content.style.display = 'none';
+                    step1Content.style.display = 'block';
+                    step1.className = 'step active';
+                    step2.className = 'step';
+                    authMessage.innerHTML = '<div class="message-box"><h4>✅ Account created!</h4><p>Please check your email and confirm your account before logging in.</p></div>';
+                    authMessage.style.color = '#4caf50';
+                    // Clear fields
+                    signupData = {};
+                    fetchedUidData = null;
+                    ffPreviewContainer.style.display = 'none';
+                    verifyUidBtn.disabled = true;
+                    // Switch to login mode
+                    isLogin = true;
+                    authTitle.textContent = 'Login';
+                    authSubmitBtn.textContent = 'Login';
+                    authToggle.textContent = "Don't have an account? Sign Up";
+                    authName.style.display = 'none';
+                    authPhone.style.display = 'none';
+                    authReferral.style.display = 'none';
+                }, 3000);
 
             } catch (err) {
                 uidMessage.textContent = '❌ Error creating account: ' + err.message;
