@@ -7,15 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        :root {
-            --primary: #00aaff;
-            --secondary: #bd00ff;
-            --success: #00ff88;
-            --accent-pink: #ff00c8;
-            --bg: #030303;
-            --card-bg: rgba(255,255,255,0.04);
-            --elastic: cubic-bezier(0.34,1.56,0.64,1);
-        }
+        /* (same styles as before – keep your existing CSS) */
+        :root { --primary: #00aaff; --secondary: #bd00ff; --success: #00ff88; --accent-pink: #ff00c8; --bg: #030303; --card-bg: rgba(255,255,255,0.04); --elastic: cubic-bezier(0.34,1.56,0.64,1); }
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Plus Jakarta Sans',sans-serif; }
         body { background-color:var(--bg); color:#fff; overflow-x:hidden; background-image:url('https://i.ibb.co/Qj8BBR2K/IMG-20251006-WA0001.jpg'); background-size:cover; background-attachment:fixed; background-position:center; }
         .overlay { background:linear-gradient(180deg,rgba(3,3,3,0.9) 0%,rgba(3,3,3,0.98) 100%); min-height:100vh; }
@@ -78,33 +71,25 @@
         .footer-copy { color:#444; font-size:0.75rem; font-weight:700; margin-top:20px; display:block; }
         .reveal { opacity:0; transform:translateY(30px); transition:1s cubic-bezier(0.2,0.8,0.2,1); }
         .reveal.active { opacity:1; transform:translateY(0); }
-        .message-box { background:rgba(0,0,0,0.8); padding:20px; border-radius:12px; margin:15px 0; border-left:4px solid var(--success); }
-        .message-box.error { border-left-color:var(--danger); }
-        .message-box h4 { color:var(--success); }
-        .message-box.error h4 { color:#ff6b6b; }
     </style>
 </head>
 <body>
+    <!-- (same HTML structure as before) -->
     <div class="overlay">
-        <!-- LOGO -->
         <header class="logo-wrap reveal active">
             <img src="POPPY_ESPORTS.png" alt="POPPY ESPORTS Logo" class="logo-main">
         </header>
-
         <main>
             <section class="hero reveal active">
                 <h1>POPPY ESPORTS</h1>
                 <p style="color: #666; font-weight: 500;">India’s Most Trusted Free Fire Tournament Platform</p>
 
-                <!-- AUTH CONTAINER -->
                 <div class="login-container" id="authContainer">
-                    <!-- Step indicator -->
                     <div class="step-indicator" id="stepIndicator">
                         <div class="step active" id="step1">1</div>
                         <div class="step" id="step2">2</div>
                     </div>
 
-                    <!-- Step 1: Login/Signup -->
                     <div id="step1Content">
                         <h3 id="authTitle" style="color: #fff; text-align: center;">Login</h3>
                         <form id="authForm">
@@ -119,7 +104,6 @@
                         <div id="authMessage" style="color: #ff6b6b; margin-top: 10px; text-align: center;"></div>
                     </div>
 
-                    <!-- Step 2: UID Verification -->
                     <div id="step2Content" style="display:none;">
                         <h3 style="color: #fff; text-align: center;">Verify Free Fire UID</h3>
                         <p style="color: #aaa; font-size: 0.9rem;">Enter your Free Fire UID to fetch your details.</p>
@@ -140,7 +124,6 @@
                     </div>
                 </div>
 
-                <!-- CREDITS & SOCIAL LINKS -->
                 <div class="credits">
                     <p>Developed by <strong style="color: #fff;">YourPOPPY42</strong></p>
                     <div class="social-links">
@@ -153,7 +136,6 @@
                 </div>
             </section>
 
-            <!-- FEATURES GRID -->
             <section class="reveal">
                 <h3 style="margin: 0 25px 25px; color: var(--primary); letter-spacing: 1px; font-weight: 800;">CORE FEATURES</h3>
                 <div class="features-grid">
@@ -185,7 +167,6 @@
             </section>
         </main>
 
-        <!-- FEATURE MODAL -->
         <div id="featureModal">
             <div class="modal-content">
                 <h3 id="modalTitle">Feature Name</h3>
@@ -204,7 +185,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – Landing Page (Handles Email Confirmation)
+        // POPPY ESPORTS – Landing Page (Improved Error Handling)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -216,7 +197,7 @@
         let signupData = {};
         let fetchedUidData = null;
 
-        // DOM Elements
+        // DOM refs (same as before)
         const authTitle = document.getElementById('authTitle');
         const authForm = document.getElementById('authForm');
         const authEmail = document.getElementById('authEmail');
@@ -275,7 +256,7 @@
                 step2Content.style.display = 'none';
                 step1.className = 'step active';
                 step2.className = 'step';
-                // Reset UID preview
+                // Reset
                 fetchedUidData = null;
                 ffPreviewContainer.style.display = 'none';
                 verifyUidBtn.disabled = true;
@@ -284,7 +265,6 @@
             authMessage.textContent = '';
         });
 
-        // Back to Step 1
         backToStep1.addEventListener('click', () => {
             step1Content.style.display = 'block';
             step2Content.style.display = 'none';
@@ -296,11 +276,10 @@
             uidMessage.textContent = '';
         });
 
-        // Step 1 form submit
+        // Step 1: Login or move to step 2
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (isLogin) {
-                // Login
                 const email = authEmail.value.trim();
                 const password = authPassword.value;
                 if (!email || !password) {
@@ -315,7 +294,6 @@
                     authMessage.textContent = err.message;
                 }
             } else {
-                // Signup → move to step 2
                 const name = authName.value.trim();
                 const phone = authPhone.value.trim();
                 const email = authEmail.value.trim();
@@ -341,16 +319,14 @@
             }
         });
 
-        // Fetch UID Data (using proxy)
+        // Fetch UID
         fetchUidBtn.addEventListener('click', async () => {
             const uid = ffUidInput.value.trim();
             if (!uid) {
                 uidMessage.textContent = 'Please enter a Free Fire UID.';
                 return;
             }
-
-            // Check if UID already exists
-            const { data: existing, error: checkErr } = await supabaseClient
+            const { data: existing } = await supabaseClient
                 .from('users')
                 .select('free_fire_uid')
                 .eq('free_fire_uid', uid)
@@ -364,7 +340,6 @@
             fetchUidBtn.disabled = true;
 
             try {
-                // Use the proxy endpoint
                 const response = await fetch(`/api/fetch-ff-data?uid=${uid}`);
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -372,7 +347,6 @@
                 }
                 const data = await response.json();
 
-                // Extract required fields
                 const basic = data.basic_info || {};
                 const clan = data.clan_basic_info || {};
 
@@ -381,7 +355,6 @@
                 const level = basic.level || 'N/A';
                 const clanName = clan.clan_name || null;
 
-                // Store for account creation
                 fetchedUidData = {
                     uid: uid,
                     nickname: nickname,
@@ -391,12 +364,10 @@
                     clanId: clan.clan_id || ''
                 };
 
-                // Update preview
                 previewNickname.textContent = nickname;
                 previewRegion.textContent = region;
                 previewLevel.textContent = level;
 
-                // Show clan if available
                 if (clanName) {
                     previewClanName.textContent = clanName;
                     clanRow.style.display = 'flex';
@@ -419,127 +390,110 @@
             }
         });
 
-        // Verify & Create Account – Handles Email Confirmation
+        // ============ VERIFY & CREATE ACCOUNT (Improved Error Handling) ============
         verifyUidBtn.addEventListener('click', async () => {
-    if (!fetchedUidData) {
-        uidMessage.textContent = 'Please fetch UID data first.';
-        return;
-    }
-
-    verifyUidBtn.disabled = true;
-    uidMessage.textContent = 'Creating account...';
-
-    try {
-        const { name, phone, email, password, referral } = signupData;
-
-        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: { data: { display_name: name, phone_number: phone } }
-        });
-        if (authError) throw authError;
-
-        const userId = authData.user?.id || authData.session?.user?.id;
-        if (!userId) {
-            uidMessage.textContent = '📧 Account created! Please check your email to confirm your address.';
-            uidMessage.style.color = '#4caf50';
-            setTimeout(() => {
-                step2Content.style.display = 'none';
-                step1Content.style.display = 'block';
-                step1.className = 'step active';
-                step2.className = 'step';
-                authMessage.innerHTML = '<div class="message-box"><h4>✅ Account created!</h4><p>Please check your email and confirm your account before logging in.</p></div>';
-                authMessage.style.color = '#4caf50';
-                signupData = {};
-                fetchedUidData = null;
-                ffPreviewContainer.style.display = 'none';
-                verifyUidBtn.disabled = true;
-            }, 2000);
-            return;
-        }
-
-        const profile = {
-            id: userId,
-            email,
-            display_name: name,
-            phone_number: phone,
-            balance: 10,
-            winning_cash: 0,
-            bonus_cash: 10,
-            status: 'active',
-            referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-            referred_by: null,
-            created_at: new Date(),
-            total_matches: 0,
-            won_matches: 0,
-            total_earnings: 0,
-            referral_earnings: 0,
-            free_fire_uid: fetchedUidData.uid,
-            ff_clan_id: fetchedUidData.clanId,
-            ff_clan_name: fetchedUidData.clanName,
-            ff_captain_id: '',
-            ff_captain_nickname: '',
-            ff_captain_level: 0,
-            ff_captain_region: '',
-            ff_verified: true
-        };
-
-        const { error: profileError } = await supabaseClient.from('users').insert([profile]);
-        if (profileError) throw profileError;
-
-        if (referral) {
-            const { data: referrer, error: refErr } = await supabaseClient
-                .from('users')
-                .select('id')
-                .eq('referral_code', referral)
-                .single();
-            if (!refErr && referrer) {
-                await supabaseClient.from('pending_referrals').insert([{
-                    referrer_uid: referrer.id,
-                    referred_uid: userId,
-                    status: 'pending',
-                    timestamp: new Date()
-                }]);
-                await supabaseClient.from('users').update({ referred_by: referrer.id }).eq('id', userId);
+            if (!fetchedUidData) {
+                uidMessage.textContent = 'Please fetch UID data first.';
+                return;
             }
-        }
 
-        uidMessage.textContent = '✅ Account created successfully! Please check your email to confirm your account.';
-        uidMessage.style.color = '#4caf50';
-        verifyUidBtn.disabled = true;
-
-        setTimeout(() => {
-            step2Content.style.display = 'none';
-            step1Content.style.display = 'block';
-            step1.className = 'step active';
-            step2.className = 'step';
-            authMessage.innerHTML = '<div class="message-box"><h4>✅ Account created!</h4><p>Please check your email and confirm your account before logging in.</p></div>';
-            authMessage.style.color = '#4caf50';
-            signupData = {};
-            fetchedUidData = null;
-            ffPreviewContainer.style.display = 'none';
             verifyUidBtn.disabled = true;
-            isLogin = true;
-            authTitle.textContent = 'Login';
-            authSubmitBtn.textContent = 'Login';
-            authToggle.textContent = "Don't have an account? Sign Up";
-            authName.style.display = 'none';
-            authPhone.style.display = 'none';
-            authReferral.style.display = 'none';
-        }, 3000);
+            uidMessage.textContent = 'Creating account...';
 
-    } catch (err) {
-        // 🛡️ Handle rate limit specifically
-        if (err.message && err.message.includes('email rate limit exceeded')) {
-            uidMessage.textContent = '⏳ Too many signup attempts with this email. Please wait a few minutes or use a different email address.';
-            uidMessage.style.color = '#ffaa00';
-        } else {
-            uidMessage.textContent = '❌ Error creating account: ' + err.message;
-            uidMessage.style.color = '#ff6b6b';
-        }
-        verifyUidBtn.disabled = false;
-    }
-});
+            try {
+                const { name, phone, email, password, referral } = signupData;
+
+                const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { display_name: name, phone_number: phone } }
+                });
+                if (authError) throw authError;
+
+                const userId = authData.user?.id || authData.session?.user?.id;
+                if (!userId) {
+                    throw new Error('User ID not returned. Please check Supabase email confirmation settings.');
+                }
+
+                const profile = {
+                    id: userId,
+                    email,
+                    display_name: name,
+                    phone_number: phone,
+                    balance: 10,
+                    winning_cash: 0,
+                    bonus_cash: 10,
+                    status: 'active',
+                    referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
+                    referred_by: null,
+                    created_at: new Date(),
+                    total_matches: 0,
+                    won_matches: 0,
+                    total_earnings: 0,
+                    referral_earnings: 0,
+                    free_fire_uid: fetchedUidData.uid,
+                    ff_clan_id: fetchedUidData.clanId,
+                    ff_clan_name: fetchedUidData.clanName,
+                    ff_captain_id: '',
+                    ff_captain_nickname: '',
+                    ff_captain_level: 0,
+                    ff_captain_region: '',
+                    ff_verified: true
+                };
+
+                const { error: profileError } = await supabaseClient.from('users').insert([profile]);
+                if (profileError) throw profileError;
+
+                if (referral) {
+                    const { data: referrer, error: refErr } = await supabaseClient
+                        .from('users')
+                        .select('id')
+                        .eq('referral_code', referral)
+                        .single();
+                    if (!refErr && referrer) {
+                        await supabaseClient.from('pending_referrals').insert([{
+                            referrer_uid: referrer.id,
+                            referred_uid: userId,
+                            status: 'pending',
+                            timestamp: new Date()
+                        }]);
+                        await supabaseClient.from('users').update({ referred_by: referrer.id }).eq('id', userId);
+                    }
+                }
+
+                // Auto-login
+                const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (signInError) throw signInError;
+
+                window.location.href = '/user';
+
+            } catch (err) {
+                // Log the full error to browser console for debugging
+                console.error('Signup error:', err);
+
+                let errorMessage = 'An unknown error occurred. Please try again.';
+                if (err && typeof err === 'object') {
+                    if (err.message) {
+                        errorMessage = err.message;
+                    } else if (err.error_description) {
+                        errorMessage = err.error_description;
+                    } else if (err.code) {
+                        errorMessage = `Error code: ${err.code}`;
+                    } else if (err.status) {
+                        errorMessage = `HTTP ${err.status}: ${err.statusText || 'Unknown error'}`;
+                    }
+                }
+
+                if (errorMessage.includes('email rate limit exceeded')) {
+                    uidMessage.textContent = '⏳ Too many signup attempts with this email. Please wait a few minutes or use a different email address.';
+                    uidMessage.style.color = '#ffaa00';
+                } else {
+                    uidMessage.textContent = '❌ Error creating account: ' + errorMessage;
+                    uidMessage.style.color = '#ff6b6b';
+                }
+                verifyUidBtn.disabled = false;
+            }
+        });
 
         // Load social links
         async function loadSocialLinks() {
@@ -551,17 +505,14 @@
             if (data.instagram_link) instagramLink.href = data.instagram_link;
         }
 
-        // Auth state – redirect if already logged in
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (session?.user) {
                 window.location.href = '/user';
             }
         });
 
-        // Init
         loadSocialLinks();
 
-        // Feature modal
         function showDetail(title, desc) {
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalDesc').innerText = desc;
@@ -571,7 +522,6 @@
             document.getElementById('featureModal').style.display = 'none';
         }
 
-        // Reveal animations
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
         }, { threshold: 0.1 });
