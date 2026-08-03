@@ -421,138 +421,125 @@
 
         // Verify & Create Account – Handles Email Confirmation
         verifyUidBtn.addEventListener('click', async () => {
-            if (!fetchedUidData) {
-                uidMessage.textContent = 'Please fetch UID data first.';
-                return;
-            }
+    if (!fetchedUidData) {
+        uidMessage.textContent = 'Please fetch UID data first.';
+        return;
+    }
 
-            verifyUidBtn.disabled = true;
-            uidMessage.textContent = 'Creating account...';
+    verifyUidBtn.disabled = true;
+    uidMessage.textContent = 'Creating account...';
 
-            try {
-                const { name, phone, email, password, referral } = signupData;
+    try {
+        const { name, phone, email, password, referral } = signupData;
 
-                // Create auth user (will send confirmation email if enabled)
-                const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-                    email,
-                    password,
-                    options: { data: { display_name: name, phone_number: phone } }
-                });
-                if (authError) throw authError;
-
-                // If email confirmation is enabled, authData.user will be null until confirmed.
-                // We'll still insert the profile row so it's ready when the user confirms.
-                const userId = authData.user?.id || authData.session?.user?.id;
-                if (!userId) {
-                    // If user is null (email confirmation required), we need to handle it.
-                    // We'll still create the profile with a temporary ID? Actually, we can't insert without a valid auth user.
-                    // Instead, we will use the session user if available, otherwise we cannot proceed.
-                    // But the signUp call may return a session if email confirmation is disabled.
-                    // If email confirmation is enabled, we won't have a session.
-                    // In that case, we should just tell the user to check their email.
-                    uidMessage.textContent = '📧 Account created! Please check your email to confirm your address.';
-                    uidMessage.style.color = '#4caf50';
-                    // Reset the form and go back to login
-                    setTimeout(() => {
-                        // Reset UI to step 1 and show message
-                        step2Content.style.display = 'none';
-                        step1Content.style.display = 'block';
-                        step1.className = 'step active';
-                        step2.className = 'step';
-                        authMessage.innerHTML = '<div class="message-box"><h4>✅ Account created!</h4><p>Please check your email and confirm your account before logging in.</p></div>';
-                        authMessage.style.color = '#4caf50';
-                        // Clear the signup data
-                        signupData = {};
-                        fetchedUidData = null;
-                        ffPreviewContainer.style.display = 'none';
-                        verifyUidBtn.disabled = true;
-                    }, 2000);
-                    return;
-                }
-
-                // If we have a user, insert the profile
-                const profile = {
-                    id: userId,
-                    email,
-                    display_name: name,
-                    phone_number: phone,
-                    balance: 10,
-                    winning_cash: 0,
-                    bonus_cash: 10,
-                    status: 'active',
-                    referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-                    referred_by: null,
-                    created_at: new Date(),
-                    total_matches: 0,
-                    won_matches: 0,
-                    total_earnings: 0,
-                    referral_earnings: 0,
-                    free_fire_uid: fetchedUidData.uid,
-                    ff_clan_id: fetchedUidData.clanId,
-                    ff_clan_name: fetchedUidData.clanName,
-                    ff_captain_id: '',
-                    ff_captain_nickname: '',
-                    ff_captain_level: 0,
-                    ff_captain_region: '',
-                    ff_verified: true
-                };
-
-                const { error: profileError } = await supabaseClient.from('users').insert([profile]);
-                if (profileError) throw profileError;
-
-                // Handle referral
-                if (referral) {
-                    const { data: referrer, error: refErr } = await supabaseClient
-                        .from('users')
-                        .select('id')
-                        .eq('referral_code', referral)
-                        .single();
-                    if (!refErr && referrer) {
-                        await supabaseClient.from('pending_referrals').insert([{
-                            referrer_uid: referrer.id,
-                            referred_uid: userId,
-                            status: 'pending',
-                            timestamp: new Date()
-                        }]);
-                        await supabaseClient.from('users').update({ referred_by: referrer.id }).eq('id', userId);
-                    }
-                }
-
-                // Show success message
-                uidMessage.textContent = '✅ Account created successfully! Please check your email to confirm your account.';
-                uidMessage.style.color = '#4caf50';
-                verifyUidBtn.disabled = true;
-
-                // Redirect to login after a few seconds
-                setTimeout(() => {
-                    // Reset UI to login
-                    step2Content.style.display = 'none';
-                    step1Content.style.display = 'block';
-                    step1.className = 'step active';
-                    step2.className = 'step';
-                    authMessage.innerHTML = '<div class="message-box"><h4>✅ Account created!</h4><p>Please check your email and confirm your account before logging in.</p></div>';
-                    authMessage.style.color = '#4caf50';
-                    // Clear fields
-                    signupData = {};
-                    fetchedUidData = null;
-                    ffPreviewContainer.style.display = 'none';
-                    verifyUidBtn.disabled = true;
-                    // Switch to login mode
-                    isLogin = true;
-                    authTitle.textContent = 'Login';
-                    authSubmitBtn.textContent = 'Login';
-                    authToggle.textContent = "Don't have an account? Sign Up";
-                    authName.style.display = 'none';
-                    authPhone.style.display = 'none';
-                    authReferral.style.display = 'none';
-                }, 3000);
-
-            } catch (err) {
-                uidMessage.textContent = '❌ Error creating account: ' + err.message;
-                uidMessage.style.color = '#ff6b6b';
-                verifyUidBtn.disabled = false;
-            }
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { data: { display_name: name, phone_number: phone } }
         });
+        if (authError) throw authError;
+
+        const userId = authData.user?.id || authData.session?.user?.id;
+        if (!userId) {
+            uidMessage.textContent = '📧 Account created! Please check your email to confirm your address.';
+            uidMessage.style.color = '#4caf50';
+            setTimeout(() => {
+                step2Content.style.display = 'none';
+                step1Content.style.display = 'block';
+                step1.className = 'step active';
+                step2.className = 'step';
+                authMessage.innerHTML = '<div class="message-box"><h4>✅ Account created!</h4><p>Please check your email and confirm your account before logging in.</p></div>';
+                authMessage.style.color = '#4caf50';
+                signupData = {};
+                fetchedUidData = null;
+                ffPreviewContainer.style.display = 'none';
+                verifyUidBtn.disabled = true;
+            }, 2000);
+            return;
+        }
+
+        const profile = {
+            id: userId,
+            email,
+            display_name: name,
+            phone_number: phone,
+            balance: 10,
+            winning_cash: 0,
+            bonus_cash: 10,
+            status: 'active',
+            referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
+            referred_by: null,
+            created_at: new Date(),
+            total_matches: 0,
+            won_matches: 0,
+            total_earnings: 0,
+            referral_earnings: 0,
+            free_fire_uid: fetchedUidData.uid,
+            ff_clan_id: fetchedUidData.clanId,
+            ff_clan_name: fetchedUidData.clanName,
+            ff_captain_id: '',
+            ff_captain_nickname: '',
+            ff_captain_level: 0,
+            ff_captain_region: '',
+            ff_verified: true
+        };
+
+        const { error: profileError } = await supabaseClient.from('users').insert([profile]);
+        if (profileError) throw profileError;
+
+        if (referral) {
+            const { data: referrer, error: refErr } = await supabaseClient
+                .from('users')
+                .select('id')
+                .eq('referral_code', referral)
+                .single();
+            if (!refErr && referrer) {
+                await supabaseClient.from('pending_referrals').insert([{
+                    referrer_uid: referrer.id,
+                    referred_uid: userId,
+                    status: 'pending',
+                    timestamp: new Date()
+                }]);
+                await supabaseClient.from('users').update({ referred_by: referrer.id }).eq('id', userId);
+            }
+        }
+
+        uidMessage.textContent = '✅ Account created successfully! Please check your email to confirm your account.';
+        uidMessage.style.color = '#4caf50';
+        verifyUidBtn.disabled = true;
+
+        setTimeout(() => {
+            step2Content.style.display = 'none';
+            step1Content.style.display = 'block';
+            step1.className = 'step active';
+            step2.className = 'step';
+            authMessage.innerHTML = '<div class="message-box"><h4>✅ Account created!</h4><p>Please check your email and confirm your account before logging in.</p></div>';
+            authMessage.style.color = '#4caf50';
+            signupData = {};
+            fetchedUidData = null;
+            ffPreviewContainer.style.display = 'none';
+            verifyUidBtn.disabled = true;
+            isLogin = true;
+            authTitle.textContent = 'Login';
+            authSubmitBtn.textContent = 'Login';
+            authToggle.textContent = "Don't have an account? Sign Up";
+            authName.style.display = 'none';
+            authPhone.style.display = 'none';
+            authReferral.style.display = 'none';
+        }, 3000);
+
+    } catch (err) {
+        // 🛡️ Handle rate limit specifically
+        if (err.message && err.message.includes('email rate limit exceeded')) {
+            uidMessage.textContent = '⏳ Too many signup attempts with this email. Please wait a few minutes or use a different email address.';
+            uidMessage.style.color = '#ffaa00';
+        } else {
+            uidMessage.textContent = '❌ Error creating account: ' + err.message;
+            uidMessage.style.color = '#ff6b6b';
+        }
+        verifyUidBtn.disabled = false;
+    }
+});
 
         // Load social links
         async function loadSocialLinks() {
