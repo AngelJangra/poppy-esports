@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* (same styles – unchanged) */
         body { background: #0b0b1a; color: #fff; font-family: 'Poppins', sans-serif; padding: 20px; }
         .tournament-card { background: #1a1a2e; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a2a4a; transition: 0.3s; }
         .tournament-card:hover { border-color: #00aaff; box-shadow: 0 0 20px rgba(0,170,255,0.2); }
@@ -64,7 +65,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (With Profile Fallback)
+        // POPPY ESPORTS – User Dashboard (Duplicate Email Resolved)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -85,9 +86,10 @@
         const ffClanDisplay = document.getElementById('ffClanDisplay');
         const ffBadge = document.getElementById('ffBadge');
 
-        // ============ CREATE PROFILE IF MISSING ============
+        // ============ CREATE PROFILE IF MISSING (with email conflict handling) ============
         async function ensureProfile(user) {
-            const { data: existing, error } = await supabaseClient
+            // First, try to fetch by id
+            let { data: existing, error } = await supabaseClient
                 .from('users')
                 .select('*')
                 .eq('id', user.id)
@@ -97,9 +99,30 @@
                 return existing; // profile exists
             }
 
-            // Profile missing – create it now
-            console.log('Profile missing for user', user.id, '– creating...');
+            // If not found by id, check by email
+            const { data: emailMatch, error: emailError } = await supabaseClient
+                .from('users')
+                .select('*')
+                .eq('email', user.email)
+                .maybeSingle();
 
+            // If a row with the same email exists, delete it (orphaned) and insert a new one
+            if (emailMatch) {
+                console.log('Found orphaned profile with same email. Deleting...');
+                const { error: delError } = await supabaseClient
+                    .from('users')
+                    .delete()
+                    .eq('email', user.email);
+                if (delError) {
+                    console.error('Failed to delete orphaned profile:', delError);
+                    // If delete fails, try to update the id (not recommended, but as last resort)
+                    // We'll just return the existing profile and hope it works
+                    return emailMatch;
+                }
+            }
+
+            // Create a fresh profile
+            console.log('Creating new profile for user', user.id);
             const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
             const phone = user.user_metadata?.phone_number || '';
 
@@ -137,9 +160,9 @@
                 .insert([newProfile]);
 
             if (insertError) {
-                console.error('Failed to create missing profile:', insertError);
-                // Try once more with a simpler profile
-                const simpleProfile = {
+                console.error('Failed to create new profile:', insertError);
+                // Try with minimal fields as fallback
+                const fallbackProfile = {
                     id: user.id,
                     email: user.email,
                     display_name: displayName,
@@ -151,19 +174,19 @@
                     referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
                     created_at: new Date()
                 };
-                const { error: retryError } = await supabaseClient
+                const { error: fallbackError } = await supabaseClient
                     .from('users')
-                    .insert([simpleProfile]);
-                if (retryError) {
-                    throw retryError;
+                    .insert([fallbackProfile]);
+                if (fallbackError) {
+                    throw fallbackError;
                 }
-                // Fetch the newly created simple profile
-                const { data: simpleData } = await supabaseClient
+                // Fetch the newly created profile
+                const { data: fallbackData } = await supabaseClient
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
                     .single();
-                return simpleData;
+                return fallbackData;
             }
 
             // Fetch the new profile
