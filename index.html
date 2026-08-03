@@ -103,7 +103,6 @@
                         </form>
                         <span class="auth-toggle" id="authToggle">Don't have an account? Sign Up</span>
                         <div id="authMessage" style="color: #ff6b6b; margin-top: 10px; text-align: center;"></div>
-                        <!-- Forgot Password link -->
                         <span class="forgot-password-link" id="forgotPasswordLink">Forgot password?</span>
                     </div>
 
@@ -188,7 +187,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – Landing Page (with Password Reset)
+        // POPPY ESPORTS – Landing Page (Instant Referral Bonus)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -434,7 +433,7 @@
             }
         });
 
-        // ============ VERIFY & CREATE ACCOUNT (with duplicate handling) ============
+        // ============ VERIFY & CREATE ACCOUNT (with instant referral bonus) ============
         verifyUidBtn.addEventListener('click', async () => {
             if (!fetchedUidData) {
                 uidMessage.textContent = 'Please fetch UID data first.';
@@ -448,7 +447,6 @@
                 const { name, phone, email, password, referral } = signupData;
 
                 // ---- CHECK IF EMAIL ALREADY EXISTS IN AUTH ----
-                // We'll try to sign up; if it fails with "user already registered", we handle it.
                 let authData, authError;
                 try {
                     const result = await supabaseClient.auth.signUp({
@@ -463,7 +461,7 @@
                 }
 
                 if (authError && authError.message.includes('User already registered')) {
-                    // Email already exists in Auth – check if profile exists and create if missing
+                    // Email exists – try to create missing profile or login
                     const { data: existingUser } = await supabaseClient
                         .from('users')
                         .select('*')
@@ -471,18 +469,15 @@
                         .maybeSingle();
 
                     if (!existingUser) {
-                        // Profile missing – create it using the auth user's ID (we need to fetch the user)
-                        // We'll try to sign in to get the user id
+                        // Profile missing – sign in to get user ID
                         const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
                         if (signInError) {
-                            // Could not sign in – maybe wrong password. Tell user to reset password.
-                            uidMessage.textContent = '❌ Account exists but password is incorrect. Please login or reset your password.';
+                            uidMessage.textContent = '❌ Account exists but password is incorrect. Please reset your password.';
                             uidMessage.style.color = '#ffaa00';
                             verifyUidBtn.disabled = false;
                             return;
                         }
                         const userId = signInData.user.id;
-                        // Create profile
                         const newProfile = {
                             id: userId,
                             email,
@@ -501,14 +496,13 @@
                         };
                         const { error: insertError } = await supabaseClient.from('users').insert([newProfile]);
                         if (insertError) throw insertError;
-                        // Now we have profile and we are signed in – redirect
                         window.location.href = '/user';
                         return;
                     } else {
                         // Profile exists – just login
                         const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
                         if (signInError) {
-                            uidMessage.textContent = '❌ Account exists but password is incorrect. Please reset your password using "Forgot password?" link.';
+                            uidMessage.textContent = '❌ Password incorrect. Please reset your password.';
                             uidMessage.style.color = '#ffaa00';
                             verifyUidBtn.disabled = false;
                             return;
@@ -555,21 +549,69 @@
                 const { error: profileError } = await supabaseClient.from('users').insert([profile]);
                 if (profileError) throw profileError;
 
-                // ---- REFERRAL ----
+                // ---- REFERRAL BONUS (INSTANT) ----
                 if (referral) {
+                    // Find the referrer by referral code
                     const { data: referrer, error: refErr } = await supabaseClient
                         .from('users')
-                        .select('id')
+                        .select('id, balance, bonus_cash, referral_earnings')
                         .eq('referral_code', referral)
                         .single();
+
                     if (!refErr && referrer) {
-                        await supabaseClient.from('pending_referrals').insert([{
-                            referrer_uid: referrer.id,
-                            referred_uid: userId,
-                            status: 'pending',
-                            timestamp: new Date()
-                        }]);
-                        await supabaseClient.from('users').update({ referred_by: referrer.id }).eq('id', userId);
+                        const bonusAmount = 10; // ₹10 per referral
+                        // Update referrer's balance and bonus_cash
+                        const newBalance = (referrer.balance || 0) + bonusAmount;
+                        const newBonus = (referrer.bonus_cash || 0) + bonusAmount;
+                        const newReferralEarnings = (referrer.referral_earnings || 0) + bonusAmount;
+
+                        await supabaseClient
+                            .from('users')
+                            .update({
+                                balance: newBalance,
+                                bonus_cash: newBonus,
+                                referral_earnings: newReferralEarnings
+                            })
+                            .eq('id', referrer.id);
+
+                        // Update the new user's referred_by field
+                        await supabaseClient
+                            .from('users')
+                            .update({ referred_by: referrer.id })
+                            .eq('id', userId);
+
+                        // Record transaction for referrer
+                        await supabaseClient
+                            .from('transactions')
+                            .insert([{
+                                user_id: referrer.id,
+                                type: 'referral_bonus',
+                                amount: bonusAmount,
+                                description: `Referral bonus for inviting ${email}`,
+                                timestamp: new Date(),
+                                balance_after: newBalance,
+                                details: { referred_user_id: userId }
+                            }]);
+
+                        // Mark pending referral as credited
+                        // Since we already inserted a pending referral earlier (in the signup flow), we need to update it.
+                        // But we inserted it before this? Actually we didn't insert pending referral yet – we'll do it now.
+                        // We'll insert a credited referral directly.
+                        await supabaseClient
+                            .from('pending_referrals')
+                            .insert([{
+                                referrer_uid: referrer.id,
+                                referred_uid: userId,
+                                status: 'credited',
+                                timestamp: new Date(),
+                                credited_at: new Date(),
+                                bonus_amount: bonusAmount
+                            }]);
+
+                        // Also update the new user's profile to have referred_by set (already done above)
+                        console.log(`Referral bonus ₹${bonusAmount} credited to ${referrer.id}`);
+                    } else {
+                        console.warn('Referral code not found:', referral);
                     }
                 }
 
