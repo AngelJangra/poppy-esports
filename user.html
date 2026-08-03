@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* (same styles – unchanged) */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Poppins', sans-serif;
@@ -258,7 +257,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (Strict ID‑based profile)
+        // POPPY ESPORTS – User Dashboard (Fixed Tournament Join)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -281,9 +280,8 @@
         const ffClanDisplay = document.getElementById('ffClanDisplay');
         const ffBadge = document.getElementById('ffBadge');
 
-        // ============ STRICT PROFILE LOOKUP (by ID only) ============
+        // ============ STRICT PROFILE LOOKUP ============
         async function ensureProfile(user) {
-            // Only look up by the user's unique ID
             const { data: profile, error } = await supabaseClient
                 .from('users')
                 .select('*')
@@ -292,7 +290,6 @@
 
             if (profile) return profile;
 
-            // No profile found – create one (but this should never happen if signup worked)
             console.warn('Profile missing for user:', user.id, '– creating one now.');
             const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
             const phone = user.user_metadata?.phone_number || '';
@@ -331,13 +328,11 @@
             const { error: insertError } = await supabaseClient.from('users').insert([newProfile]);
             if (insertError) {
                 console.error('Failed to create missing profile:', insertError);
-                // Sign out and force re‑signup
                 await supabaseClient.auth.signOut();
                 window.location.href = '/';
                 return null;
             }
 
-            // Fetch the newly created profile
             const { data: newData } = await supabaseClient.from('users').select('*').eq('id', user.id).single();
             return newData;
         }
@@ -380,9 +375,8 @@
                 currentUser = user;
                 try {
                     userProfile = await ensureProfile(user);
-                    if (!userProfile) return; // ensureProfile signs out on failure
+                    if (!userProfile) return;
 
-                    // If deleted flag is somehow true (soft delete fallback)
                     if (userProfile.deleted === true) {
                         await supabaseClient.auth.signOut();
                         window.location.href = '/';
@@ -423,6 +417,7 @@
                 .limit(10);
 
             if (error) {
+                console.error('Error loading tournaments:', error);
                 tournamentsContainer.innerHTML = `<div class="no-tournaments">Error loading tournaments.</div>`;
                 return;
             }
@@ -479,7 +474,7 @@
             });
         }
 
-        // ============ JOIN TOURNAMENT ============
+        // ============ JOIN TOURNAMENT (FIXED) ============
         async function joinTournament(tournamentId, fee) {
             if (!currentUser) return;
             if ((userProfile.balance || 0) < fee) {
@@ -487,15 +482,28 @@
                 return;
             }
 
+            console.log('Joining tournament ID:', tournamentId, 'Fee:', fee);
+
             const { data: t, error: tError } = await supabaseClient
                 .from('tournaments')
                 .select('max_players, registered_players')
                 .eq('id', tournamentId)
-                .single();
-            if (tError || !t) {
-                alert('Tournament not found.');
+                .maybeSingle();
+
+            console.log('Tournament data:', t);
+            console.log('Error:', tError);
+
+            if (tError) {
+                console.error('Error fetching tournament:', tError);
+                alert('Error loading tournament details. Please try again.');
                 return;
             }
+
+            if (!t) {
+                alert('Tournament not found. It may have been removed.');
+                return;
+            }
+
             const registeredCount = t.registered_players ? Object.keys(t.registered_players).length : 0;
             const maxPlayers = t.max_players || 0;
             if (maxPlayers > 0 && registeredCount >= maxPlayers) {
@@ -540,6 +548,7 @@
                 alert('Joined successfully!');
                 loadUpcomingTournaments();
             } catch (err) {
+                console.error('Join error:', err);
                 alert('Error joining: ' + err.message);
             }
         }
