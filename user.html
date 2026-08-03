@@ -64,7 +64,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard
+        // POPPY ESPORTS – User Dashboard (With Profile Fallback)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -85,39 +85,129 @@
         const ffClanDisplay = document.getElementById('ffClanDisplay');
         const ffBadge = document.getElementById('ffBadge');
 
-        // Auth state
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            const user = session?.user || null;
-            if (user) {
-                currentUser = user;
-                const { data: profile, error } = await supabaseClient
+        // ============ CREATE PROFILE IF MISSING ============
+        async function ensureProfile(user) {
+            const { data: existing, error } = await supabaseClient
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            if (existing) {
+                return existing; // profile exists
+            }
+
+            // Profile missing – create it now
+            console.log('Profile missing for user', user.id, '– creating...');
+
+            const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
+            const phone = user.user_metadata?.phone_number || '';
+
+            const newProfile = {
+                id: user.id,
+                email: user.email,
+                display_name: displayName,
+                phone_number: phone,
+                balance: 10,
+                winning_cash: 0,
+                bonus_cash: 10,
+                status: 'active',
+                referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
+                referred_by: null,
+                created_at: new Date(),
+                total_matches: 0,
+                won_matches: 0,
+                total_earnings: 0,
+                referral_earnings: 0,
+                free_fire_uid: null,
+                ff_clan_id: null,
+                ff_clan_name: null,
+                ff_captain_id: null,
+                ff_captain_nickname: null,
+                ff_captain_level: null,
+                ff_captain_region: null,
+                ff_verified: false,
+                joined_tournaments: {},
+                total_referred_spending: 0,
+                referral_earnings_from_spending: 0
+            };
+
+            const { error: insertError } = await supabaseClient
+                .from('users')
+                .insert([newProfile]);
+
+            if (insertError) {
+                console.error('Failed to create missing profile:', insertError);
+                // Try once more with a simpler profile
+                const simpleProfile = {
+                    id: user.id,
+                    email: user.email,
+                    display_name: displayName,
+                    phone_number: phone,
+                    balance: 10,
+                    winning_cash: 0,
+                    bonus_cash: 10,
+                    status: 'active',
+                    referral_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
+                    created_at: new Date()
+                };
+                const { error: retryError } = await supabaseClient
+                    .from('users')
+                    .insert([simpleProfile]);
+                if (retryError) {
+                    throw retryError;
+                }
+                // Fetch the newly created simple profile
+                const { data: simpleData } = await supabaseClient
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
                     .single();
-                if (error) {
-                    alert('Error loading profile. Please login again.');
-                    supabaseClient.auth.signOut();
+                return simpleData;
+            }
+
+            // Fetch the new profile
+            const { data: newData } = await supabaseClient
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+            return newData;
+        }
+
+        // ============ AUTH STATE LISTENER ============
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            const user = session?.user || null;
+            if (user) {
+                currentUser = user;
+                try {
+                    // Ensure profile exists, create if missing
+                    userProfile = await ensureProfile(user);
+
+                    // Update UI
+                    userNameDisplay.textContent = userProfile.display_name || user.email;
+                    userBalance.textContent = '₹' + (userProfile.balance || 0);
+                    referralCodeDisplay.textContent = userProfile.referral_code || 'N/A';
+                    if (userProfile.free_fire_uid) {
+                        ffUidDisplay.textContent = userProfile.free_fire_uid;
+                        ffClanDisplay.textContent = userProfile.ff_clan_name || 'N/A';
+                    } else {
+                        ffBadge.style.display = 'none';
+                    }
+                    loadUpcomingTournaments();
+                } catch (err) {
+                    console.error('Profile error:', err);
+                    alert('Error loading profile. Please try again.');
+                    // Sign out and redirect to login
+                    await supabaseClient.auth.signOut();
                     window.location.href = '/';
-                    return;
                 }
-                userProfile = profile;
-                userNameDisplay.textContent = profile.display_name || user.email;
-                userBalance.textContent = '₹' + (profile.balance || 0);
-                referralCodeDisplay.textContent = profile.referral_code || 'N/A';
-                if (profile.free_fire_uid) {
-                    ffUidDisplay.textContent = profile.free_fire_uid;
-                    ffClanDisplay.textContent = profile.ff_clan_name || 'N/A';
-                } else {
-                    ffBadge.style.display = 'none';
-                }
-                loadUpcomingTournaments();
             } else {
                 window.location.href = '/';
             }
         });
 
-        // Load tournaments
+        // ============ LOAD TOURNAMENTS ============
         async function loadUpcomingTournaments() {
             const { data: tournaments, error } = await supabaseClient
                 .from('tournaments')
@@ -185,7 +275,7 @@
             });
         }
 
-        // Join tournament
+        // ============ JOIN TOURNAMENT ============
         async function joinTournament(tournamentId, fee) {
             if (!currentUser) return;
             if ((userProfile.balance || 0) < fee) {
@@ -250,17 +340,12 @@
             }
         }
 
-        // ============ FIXED LOGOUT ============
+        // ============ LOGOUT ============
         logoutBtn.addEventListener('click', async () => {
             try {
-                // Disable the button to prevent double-click
                 logoutBtn.disabled = true;
                 logoutBtn.textContent = 'Logging out...';
-                
-                // Wait for sign-out to complete
                 await supabaseClient.auth.signOut();
-                
-                // Now redirect to home (root)
                 window.location.href = '/';
             } catch (err) {
                 console.error('Logout error:', err);
