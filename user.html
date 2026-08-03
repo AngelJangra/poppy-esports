@@ -258,7 +258,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (Detailed Error Reporting)
+        // POPPY ESPORTS – User Dashboard (Fixed registered_players count)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -408,7 +408,7 @@
             }
         });
 
-        // ============ LOAD TOURNAMENTS ============
+        // ============ LOAD TOURNAMENTS (with count from registered_players) ============
         async function loadUpcomingTournaments() {
             const { data: tournaments, error } = await supabaseClient
                 .from('tournaments')
@@ -428,6 +428,40 @@
                 return;
             }
 
+            // Fetch counts for all tournaments
+            const tournamentIds = tournaments.map(t => t.id);
+            const { data: registeredData, error: countError } = await supabaseClient
+                .from('registered_players')
+                .select('tournament_id')
+                .in('tournament_id', tournamentIds);
+
+            if (countError) {
+                console.error('Error fetching player counts:', countError);
+                // fallback: set counts to 0
+                tournamentsContainer.innerHTML = `<div class="no-tournaments">Error loading player counts. Please refresh.</div>`;
+                return;
+            }
+
+            // Build a map of tournament_id -> count
+            const countMap = {};
+            if (registeredData) {
+                registeredData.forEach(row => {
+                    countMap[row.tournament_id] = (countMap[row.tournament_id] || 0) + 1;
+                });
+            }
+
+            // Also fetch joined tournaments for the current user
+            const { data: userJoined, error: joinedError } = await supabaseClient
+                .from('registered_players')
+                .select('tournament_id')
+                .eq('user_id', currentUser.id)
+                .in('tournament_id', tournamentIds);
+
+            const joinedSet = new Set();
+            if (userJoined) {
+                userJoined.forEach(row => joinedSet.add(row.tournament_id));
+            }
+
             let html = '';
             for (const t of tournaments) {
                 const start = new Date(t.start_time).toLocaleString();
@@ -436,10 +470,10 @@
                 const entryFee = t.entry_fee || 0;
                 const prizePool = t.prize_pool || 0;
                 const maxPlayers = t.max_players || 0;
-                const registeredCount = t.registered_players ? Object.keys(t.registered_players).length : 0;
+                const registeredCount = countMap[t.id] || 0;
                 const slotsLeft = maxPlayers > 0 ? maxPlayers - registeredCount : '∞';
                 const isFull = maxPlayers > 0 && slotsLeft <= 0;
-                const isJoined = userProfile?.joined_tournaments && userProfile.joined_tournaments[t.id];
+                const isJoined = joinedSet.has(t.id);
 
                 html += `
                     <div class="tournament-card">
@@ -475,7 +509,7 @@
             });
         }
 
-        // ============ JOIN TOURNAMENT (with full error details) ============
+        // ============ JOIN TOURNAMENT (fixed) ============
         async function joinTournament(tournamentId, fee) {
             if (!currentUser) return;
             if ((userProfile.balance || 0) < fee) {
@@ -485,9 +519,10 @@
 
             console.log('Joining tournament ID:', tournamentId, 'Fee:', fee);
 
+            // Fetch tournament details (without registered_players)
             const { data: t, error: tError } = await supabaseClient
                 .from('tournaments')
-                .select('max_players, registered_players')
+                .select('max_players, entry_fee, prize_pool, status')
                 .eq('id', tournamentId)
                 .maybeSingle();
 
@@ -505,10 +540,40 @@
                 return;
             }
 
-            const registeredCount = t.registered_players ? Object.keys(t.registered_players).length : 0;
+            // Check if tournament is still open
+            if (t.status !== 'upcoming') {
+                alert('This tournament is no longer open for registration.');
+                return;
+            }
+
+            // Get current registered count for this tournament
+            const { count: registeredCount, error: countError } = await supabaseClient
+                .from('registered_players')
+                .select('*', { count: 'exact', head: true })
+                .eq('tournament_id', tournamentId);
+
+            if (countError) {
+                console.error('Count error:', countError);
+                alert('Error checking availability. Please try again.');
+                return;
+            }
+
             const maxPlayers = t.max_players || 0;
             if (maxPlayers > 0 && registeredCount >= maxPlayers) {
                 alert('Tournament is full.');
+                return;
+            }
+
+            // Check if user already joined
+            const { data: alreadyJoined, error: joinCheckError } = await supabaseClient
+                .from('registered_players')
+                .select('user_id')
+                .eq('tournament_id', tournamentId)
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+
+            if (alreadyJoined) {
+                alert('You have already joined this tournament.');
                 return;
             }
 
