@@ -258,7 +258,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (Permanent Delete via API)
+        // POPPY ESPORTS – User Dashboard (Strict ID‑based profile)
         // ================================================================
 
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
@@ -281,28 +281,22 @@
         const ffClanDisplay = document.getElementById('ffClanDisplay');
         const ffBadge = document.getElementById('ffBadge');
 
-        // ============ ENSURE PROFILE ============
+        // ============ STRICT PROFILE LOOKUP (by ID only) ============
         async function ensureProfile(user) {
-            let { data: existing, error } = await supabaseClient
+            // Only look up by the user's unique ID
+            const { data: profile, error } = await supabaseClient
                 .from('users')
                 .select('*')
                 .eq('id', user.id)
                 .maybeSingle();
 
-            if (existing) return existing;
+            if (profile) return profile;
 
-            // Check by email
-            const { data: emailMatch } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('email', user.email)
-                .maybeSingle();
-            if (emailMatch) {
-                await supabaseClient.from('users').delete().eq('email', user.email);
-            }
-
+            // No profile found – create one (but this should never happen if signup worked)
+            console.warn('Profile missing for user:', user.id, '– creating one now.');
             const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
             const phone = user.user_metadata?.phone_number || '';
+
             const newProfile = {
                 id: user.id,
                 email: user.email,
@@ -335,8 +329,15 @@
             };
 
             const { error: insertError } = await supabaseClient.from('users').insert([newProfile]);
-            if (insertError) throw insertError;
+            if (insertError) {
+                console.error('Failed to create missing profile:', insertError);
+                // Sign out and force re‑signup
+                await supabaseClient.auth.signOut();
+                window.location.href = '/';
+                return null;
+            }
 
+            // Fetch the newly created profile
             const { data: newData } = await supabaseClient.from('users').select('*').eq('id', user.id).single();
             return newData;
         }
@@ -350,7 +351,6 @@
                 deleteBtn.disabled = true;
                 deleteBtn.textContent = 'Deleting...';
 
-                // Call the serverless function
                 const response = await fetch('/api/delete-account', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -363,7 +363,6 @@
                     throw new Error(result.error || 'Failed to delete account');
                 }
 
-                // Sign out and redirect
                 await supabaseClient.auth.signOut();
                 window.location.href = '/';
             } catch (err) {
@@ -381,8 +380,9 @@
                 currentUser = user;
                 try {
                     userProfile = await ensureProfile(user);
+                    if (!userProfile) return; // ensureProfile signs out on failure
 
-                    // Check if deleted flag is true (soft delete fallback)
+                    // If deleted flag is somehow true (soft delete fallback)
                     if (userProfile.deleted === true) {
                         await supabaseClient.auth.signOut();
                         window.location.href = '/';
