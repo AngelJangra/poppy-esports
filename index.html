@@ -7,332 +7,78 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
+        /* (same styles as before – keep your existing CSS) */
         :root {
             --primary: #00aaff;
             --secondary: #bd00ff;
             --success: #00ff88;
             --accent-pink: #ff00c8;
             --bg: #030303;
-            --card-bg: rgba(255, 255, 255, 0.04);
-            --elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --card-bg: rgba(255,255,255,0.04);
+            --elastic: cubic-bezier(0.34,1.56,0.64,1);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body {
-            background-color: var(--bg);
-            color: #fff;
-            overflow-x: hidden;
-            background-image: url('https://i.ibb.co/Qj8BBR2K/IMG-20251006-WA0001.jpg');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center;
-        }
-        .overlay {
-            background: linear-gradient(180deg, rgba(3, 3, 3, 0.9) 0%, rgba(3, 3, 3, 0.98) 100%);
-            min-height: 100vh;
-        }
-        .shimmer-btn {
-            position: relative;
-            overflow: hidden;
-        }
-        .shimmer-btn::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -150%; width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
-            transform: skewX(-25deg);
-            animation: shimmerEffect 3s infinite;
-        }
-        @keyframes shimmerEffect {
-            0% { left: -150%; }
-            30% { left: 150%; }
-            100% { left: 150%; }
-        }
-        .logo-wrap { padding: 50px 0 20px; display: flex; justify-content: center; }
-        .logo-main {
-            width: 90px; height: 90px; border-radius: 50%;
-            border: 3px solid var(--primary);
-            transition: 0.5s var(--elastic);
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 170, 255, 0.2);
-        }
-        .logo-main:hover { transform: translateY(-15px) scale(1.1); box-shadow: 0 30px 60px rgba(0, 170, 255, 0.5); }
-        .hero { padding: 20px; text-align: center; }
-        .hero h1 {
-            font-weight: 800; font-size: clamp(2.2rem, 8vw, 3rem);
-            background: linear-gradient(to right, #fff, var(--primary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .login-container {
-            max-width: 450px;
-            margin: 20px auto;
-            background: rgba(0,0,0,0.6);
-            padding: 30px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .login-container input {
-            background: transparent;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 12px;
-            border-radius: 12px;
-            width: 100%;
-            margin-bottom: 15px;
-        }
-        .login-container input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        .login-container button {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            background: var(--primary);
-            color: #000;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .login-container button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .auth-toggle {
-            color: var(--primary);
-            cursor: pointer;
-            text-align: center;
-            display: block;
-            margin-top: 10px;
-        }
-        .auth-toggle:hover { text-decoration: underline; }
-        .credits {
-            text-align: center;
-            margin-top: 40px;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        .credits a { color: var(--primary); }
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .social-links a {
-            color: #aaa;
-            font-size: 1.8rem;
-            transition: 0.3s;
-        }
-        .social-links a:hover { color: var(--primary); }
-        .ff-preview {
-            background: #111;
-            padding: 15px;
-            border-radius: 12px;
-            margin: 15px 0;
-            border: 1px solid #333;
-        }
-        .ff-preview .row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #222;
-        }
-        .ff-preview .label { color: #888; }
-        .ff-preview .value { color: #00ff88; font-weight: 600; }
-        .btn-verify {
-            background: var(--success);
-            color: #000;
-        }
-        .btn-verify:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .warning-text {
-            color: #ffaa00;
-            font-size: 0.9rem;
-            margin-top: 10px;
-        }
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .step {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 700;
-        }
-        .step.active { background: var(--primary); }
-        .step.done { background: var(--success); }
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            padding: 0 20px 40px;
-        }
-        .feat-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.03);
-            padding: 25px 15px;
-            border-radius: 22px;
-            transition: 0.4s var(--elastic);
-            text-align: center;
-            cursor: pointer;
-        }
-        .feat-card:hover {
-            transform: translateY(-12px);
-            border-color: var(--primary);
-            box-shadow: 0 20px 40px rgba(0, 170, 255, 0.15);
-        }
-        .feat-card i { font-size: 2rem; color: var(--primary); margin-bottom: 12px; display: inline-block; }
-        .feat-card h4 { font-size: 0.85rem; font-weight: 700; color: #fff; }
-        .phone-case {
-            width: 250px;
-            height: 520px;
-            margin: 40px auto;
-            background: #000;
-            border: 10px solid #1a1a1a;
-            border-radius: 40px;
-            overflow: hidden;
-            transition: 0.6s var(--elastic);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-        }
-        .phone-case:hover {
-            transform: translateY(-20px) rotateX(5deg);
-            box-shadow: 0 40px 80px rgba(0, 170, 255, 0.2);
-        }
-        .slider-wrap {
-            display: flex;
-            height: 100%;
-            transition: 1s cubic-bezier(0.8, 0, 0.2, 1);
-        }
-        .slider-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .btn-box {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-            padding: 0 25px;
-        }
-        .btn-premium {
-            width: 100%;
-            max-width: 340px;
-            padding: 18px;
-            border-radius: 18px;
-            text-decoration: none;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: 0.4s var(--elastic);
-            border: none;
-        }
-        .btn-premium:hover { transform: translateY(-12px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .btn-dl {
-            background: linear-gradient(45deg, var(--primary), #0051ff);
-            color: #fff;
-            box-shadow: 0 10px 20px rgba(0, 170, 255, 0.3);
-        }
-        .btn-site {
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-        }
-        .btn-dev {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            transition: all 0.5s ease;
-        }
-        .btn-dev.alt-style {
-            border-color: var(--accent-pink);
-            color: var(--accent-pink);
-            box-shadow: 0 0 20px rgba(255, 0, 200, 0.2);
-        }
-        #featureModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-        }
-        .modal-content {
-            background: #111;
-            border: 2px solid var(--primary);
-            padding: 30px;
-            border-radius: 25px;
-            max-width: 400px;
-            text-align: center;
-            animation: modalIn 0.4s var(--elastic);
-        }
-        @keyframes modalIn {
-            from { transform: scale(0.5); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .modal-content h3 { color: var(--primary); margin-bottom: 15px; font-weight: 800; }
-        .modal-content p { color: #ccc; font-size: 0.95rem; line-height: 1.6; }
-        .close-btn {
-            margin-top: 20px;
-            padding: 10px 25px;
-            background: var(--primary);
-            color: #000;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        footer {
-            padding: 40px 20px;
-            text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            background: rgba(0,0,0,0.4);
-        }
-        .motivation-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--success);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            display: block;
-            text-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
-            animation: pulseText 2s infinite ease-in-out;
-        }
-        @keyframes pulseText {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-        }
-        .footer-copy {
-            color: #444;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-top: 20px;
-            display: block;
-        }
-        .reveal { opacity: 0; transform: translateY(30px); transition: 1s cubic-bezier(0.2,0.8,0.2,1); }
-        .reveal.active { opacity: 1; transform: translateY(0); }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Plus Jakarta Sans',sans-serif; }
+        body { background-color:var(--bg); color:#fff; overflow-x:hidden; background-image:url('https://i.ibb.co/Qj8BBR2K/IMG-20251006-WA0001.jpg'); background-size:cover; background-attachment:fixed; background-position:center; }
+        .overlay { background:linear-gradient(180deg,rgba(3,3,3,0.9) 0%,rgba(3,3,3,0.98) 100%); min-height:100vh; }
+        .shimmer-btn { position:relative; overflow:hidden; }
+        .shimmer-btn::before { content:''; position:absolute; top:0; left:-150%; width:50%; height:100%; background:linear-gradient(to right,transparent,rgba(255,255,255,0.4),transparent); transform:skewX(-25deg); animation:shimmerEffect 3s infinite; }
+        @keyframes shimmerEffect { 0% { left:-150%; } 30% { left:150%; } 100% { left:150%; } }
+        .logo-wrap { padding:50px 0 20px; display:flex; justify-content:center; }
+        .logo-main { width:90px; height:90px; border-radius:50%; border:3px solid var(--primary); transition:0.5s var(--elastic); cursor:pointer; box-shadow:0 10px 30px rgba(0,170,255,0.2); }
+        .logo-main:hover { transform:translateY(-15px) scale(1.1); box-shadow:0 30px 60px rgba(0,170,255,0.5); }
+        .hero { padding:20px; text-align:center; }
+        .hero h1 { font-weight:800; font-size:clamp(2.2rem,8vw,3rem); background:linear-gradient(to right,#fff,var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .login-container { max-width:450px; margin:20px auto; background:rgba(0,0,0,0.6); padding:30px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); }
+        .login-container input { background:transparent; border:1px solid #444; color:#fff; padding:12px; border-radius:12px; width:100%; margin-bottom:15px; }
+        .login-container input:focus { outline:none; border-color:var(--primary); }
+        .login-container button { width:100%; padding:14px; border:none; border-radius:12px; background:var(--primary); color:#000; font-weight:700; cursor:pointer; }
+        .login-container button:disabled { opacity:0.6; cursor:not-allowed; }
+        .auth-toggle { color:var(--primary); cursor:pointer; text-align:center; display:block; margin-top:10px; }
+        .auth-toggle:hover { text-decoration:underline; }
+        .credits { text-align:center; margin-top:40px; color:#666; font-size:0.9rem; }
+        .credits a { color:var(--primary); }
+        .social-links { display:flex; justify-content:center; gap:20px; margin:20px 0; }
+        .social-links a { color:#aaa; font-size:1.8rem; transition:0.3s; }
+        .social-links a:hover { color:var(--primary); }
+        .ff-preview { background:#111; padding:15px; border-radius:12px; margin:15px 0; border:1px solid #333; }
+        .ff-preview .row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #222; }
+        .ff-preview .label { color:#888; }
+        .ff-preview .value { color:#00ff88; font-weight:600; }
+        .btn-verify { background:var(--success); color:#000; }
+        .btn-verify:disabled { opacity:0.5; cursor:not-allowed; }
+        .warning-text { color:#ffaa00; font-size:0.9rem; margin-top:10px; }
+        .step-indicator { display:flex; justify-content:center; gap:20px; margin-bottom:20px; }
+        .step { width:30px; height:30px; border-radius:50%; background:#333; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+        .step.active { background:var(--primary); }
+        .step.done { background:var(--success); }
+        .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:15px; padding:0 20px 40px; }
+        .feat-card { background:var(--card-bg); border:1px solid rgba(255,255,255,0.03); padding:25px 15px; border-radius:22px; transition:0.4s var(--elastic); text-align:center; cursor:pointer; }
+        .feat-card:hover { transform:translateY(-12px); border-color:var(--primary); box-shadow:0 20px 40px rgba(0,170,255,0.15); }
+        .feat-card i { font-size:2rem; color:var(--primary); margin-bottom:12px; display:inline-block; }
+        .feat-card h4 { font-size:0.85rem; font-weight:700; color:#fff; }
+        .phone-case { width:250px; height:520px; margin:40px auto; background:#000; border:10px solid #1a1a1a; border-radius:40px; overflow:hidden; transition:0.6s var(--elastic); box-shadow:0 20px 40px rgba(0,0,0,0.8); }
+        .phone-case:hover { transform:translateY(-20px) rotateX(5deg); box-shadow:0 40px 80px rgba(0,170,255,0.2); }
+        .slider-wrap { display:flex; height:100%; transition:1s cubic-bezier(0.8,0,0.2,1); }
+        .slider-wrap img { width:100%; height:100%; object-fit:cover; }
+        .btn-box { display:flex; flex-direction:column; gap:15px; align-items:center; padding:0 25px; }
+        .btn-premium { width:100%; max-width:340px; padding:18px; border-radius:18px; text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; justify-content:center; gap:12px; transition:0.4s var(--elastic); border:none; }
+        .btn-premium:hover { transform:translateY(-12px); box-shadow:0 20px 40px rgba(0,0,0,0.5); }
+        .btn-dl { background:linear-gradient(45deg,var(--primary),#0051ff); color:#fff; box-shadow:0 10px 20px rgba(0,170,255,0.3); }
+        .btn-site { background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(10px); }
+        .btn-dev { background:transparent; border:2px solid var(--primary); color:var(--primary); transition:all 0.5s ease; }
+        .btn-dev.alt-style { border-color:var(--accent-pink); color:var(--accent-pink); box-shadow:0 0 20px rgba(255,0,200,0.2); }
+        #featureModal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:9999; padding:20px; backdrop-filter:blur(10px); }
+        .modal-content { background:#111; border:2px solid var(--primary); padding:30px; border-radius:25px; max-width:400px; text-align:center; animation:modalIn 0.4s var(--elastic); }
+        @keyframes modalIn { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
+        .modal-content h3 { color:var(--primary); margin-bottom:15px; font-weight:800; }
+        .modal-content p { color:#ccc; font-size:0.95rem; line-height:1.6; }
+        .close-btn { margin-top:20px; padding:10px 25px; background:var(--primary); color:#000; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
+        footer { padding:40px 20px; text-align:center; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.4); }
+        .motivation-text { font-size:1.2rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:2px; margin-bottom:20px; display:block; text-shadow:0 0 15px rgba(0,255,136,0.3); animation:pulseText 2s infinite ease-in-out; }
+        @keyframes pulseText { 0%,100% { transform:scale(1); opacity:0.8; } 50% { transform:scale(1.05); opacity:1; } }
+        .footer-copy { color:#444; font-size:0.75rem; font-weight:700; margin-top:20px; display:block; }
+        .reveal { opacity:0; transform:translateY(30px); transition:1s cubic-bezier(0.2,0.8,0.2,1); }
+        .reveal.active { opacity:1; transform:translateY(0); }
     </style>
 </head>
 <body>
@@ -373,17 +119,17 @@
                     <!-- Step 2: UID Verification -->
                     <div id="step2Content" style="display:none;">
                         <h3 style="color: #fff; text-align: center;">Verify Free Fire UID</h3>
-                        <p style="color: #aaa; font-size: 0.9rem;">Enter your Free Fire UID to fetch your clan and captain details.</p>
+                        <p style="color: #aaa; font-size: 0.9rem;">Enter your Free Fire UID to fetch your details.</p>
                         <div style="display: flex; gap: 10px;">
                             <input type="text" id="ffUidInput" placeholder="Enter Free Fire UID" style="flex:1;">
                             <button type="button" id="fetchUidBtn" style="width: auto; padding: 12px 20px; background: #555;">Fetch</button>
                         </div>
                         <div id="ffPreviewContainer" style="display:none;" class="ff-preview">
-                            <div class="row"><span class="label">Clan Name</span><span class="value" id="previewClanName">-</span></div>
-                            <div class="row"><span class="label">Clan ID</span><span class="value" id="previewClanId">-</span></div>
-                            <div class="row"><span class="label">Captain</span><span class="value" id="previewCaptain">-</span></div>
-                            <div class="row"><span class="label">Captain Level</span><span class="value" id="previewCaptainLevel">-</span></div>
+                            <div class="row"><span class="label">Nickname</span><span class="value" id="previewNickname">-</span></div>
                             <div class="row"><span class="label">Region</span><span class="value" id="previewRegion">-</span></div>
+                            <div class="row"><span class="label">Level</span><span class="value" id="previewLevel">-</span></div>
+                            <!-- Optional clan info -->
+                            <div class="row" id="clanRow" style="display:none;"><span class="label">Clan</span><span class="value" id="previewClanName">-</span></div>
                             <p class="warning-text"><i class="bi bi-exclamation-triangle-fill"></i> Once verified, this UID cannot be changed.</p>
                             <button type="button" id="verifyUidBtn" class="btn-verify" disabled>Verify & Create Account</button>
                         </div>
@@ -409,28 +155,28 @@
             <section class="reveal">
                 <h3 style="margin: 0 25px 25px; color: var(--primary); letter-spacing: 1px; font-weight: 800;">CORE FEATURES</h3>
                 <div class="features-grid">
-                    <div class="feat-card" onclick="showDetail('Anti-Cheat', 'Advanced military-grade shield to block all types of hacks and ensures 100% fair play.')">
+                    <div class="feat-card" onclick="showDetail('Anti-Cheat','Advanced military-grade shield to block all types of hacks and ensures 100% fair play.')">
                         <i class="bi bi-shield-check"></i><h4>ANTI-CHEAT</h4>
                     </div>
-                    <div class="feat-card" onclick="showDetail('Fast Payout', 'Withdraw your tournament winnings instantly to your UPI. 5-minute processing time.')">
+                    <div class="feat-card" onclick="showDetail('Fast Payout','Withdraw your tournament winnings instantly to your UPI. 5-minute processing time.')">
                         <i class="bi bi-lightning-charge"></i><h4>FAST PAYOUT</h4>
                     </div>
-                    <div class="feat-card" onclick="showDetail('24/7 Support', 'Dedicated support team ready to help you on Telegram and App chat at any time.')">
+                    <div class="feat-card" onclick="showDetail('24/7 Support','Dedicated support team ready to help you on Telegram and App chat at any time.')">
                         <i class="bi bi-headset"></i><h4>24/7 SUPPORT</h4>
                     </div>
-                    <div class="feat-card" onclick="showDetail('Refer & Earn', 'Invite your squad and earn real cash rewards for every friend who joins the arena!')">
+                    <div class="feat-card" onclick="showDetail('Refer & Earn','Invite your squad and earn real cash rewards for every friend who joins the arena!')">
                         <i class="bi bi-gift"></i><h4>REFER & EARN</h4>
                     </div>
-                    <div class="feat-card" onclick="showDetail('Leaderboard', 'Rise through the ranks and prove you are the king of the arena. Live tracking available.')">
+                    <div class="feat-card" onclick="showDetail('Leaderboard','Rise through the ranks and prove you are the king of the arena. Live tracking available.')">
                         <i class="bi bi-trophy"></i><h4>LEADERBOARD</h4>
                     </div>
-                    <div class="feat-card" onclick="showDetail('100% LEGIT', 'Every tournament is conducted with complete transparency and fairness. No bots, no scams – just pure skill.')">
+                    <div class="feat-card" onclick="showDetail('100% LEGIT','Every tournament is conducted with complete transparency and fairness. No bots, no scams – just pure skill.')">
                         <i class="bi bi-check-circle-fill"></i><h4>100% LEGIT</h4>
                     </div>
-                    <div class="feat-card" onclick="showDetail('REAL REWARDS', 'Win actual cash prizes that you can withdraw directly to your bank or UPI. No fake points.')">
+                    <div class="feat-card" onclick="showDetail('REAL REWARDS','Win actual cash prizes that you can withdraw directly to your bank or UPI. No fake points.')">
                         <i class="bi bi-coin"></i><h4>REAL REWARDS</h4>
                     </div>
-                    <div class="feat-card" onclick="showDetail('TRUSTED', 'Trusted by thousands of players across India. Join the community and prove your skill.')">
+                    <div class="feat-card" onclick="showDetail('TRUSTED','Trusted by thousands of players across India. Join the community and prove your skill.')">
                         <i class="bi bi-patch-check-fill"></i><h4>TRUSTED</h4>
                     </div>
                 </div>
@@ -453,27 +199,22 @@
     </div>
 
     <!-- ======== SCRIPTS ======== -->
-    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Main Script -->
     <script>
         // ================================================================
-        // POPPY ESPORTS – Landing Page (Full – Fixed Signup)
+        // POPPY ESPORTS – Landing Page (Fixed UID Fetch)
         // ================================================================
 
-        // 1. CONFIGURATION
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96ZnJobWJ0Z2pxdWFneGJpbmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU2Mjg1NTQsImV4cCI6MjEwMTIwNDU1NH0.aUvqIJ4vyiWfgR96dscEFNL1xyoHeCtOUlZCRqN_YiI';
 
-        // 2. INIT SUPABASE – use unique name
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 3. STATE
         let isLogin = true;
         let signupData = {};
         let fetchedUidData = null;
 
-        // 4. DOM ELEMENTS
+        // DOM Elements
         const authTitle = document.getElementById('authTitle');
         const authForm = document.getElementById('authForm');
         const authEmail = document.getElementById('authEmail');
@@ -495,11 +236,11 @@
         const fetchUidBtn = document.getElementById('fetchUidBtn');
         const verifyUidBtn = document.getElementById('verifyUidBtn');
         const ffPreviewContainer = document.getElementById('ffPreviewContainer');
-        const previewClanName = document.getElementById('previewClanName');
-        const previewClanId = document.getElementById('previewClanId');
-        const previewCaptain = document.getElementById('previewCaptain');
-        const previewCaptainLevel = document.getElementById('previewCaptainLevel');
+        const previewNickname = document.getElementById('previewNickname');
         const previewRegion = document.getElementById('previewRegion');
+        const previewLevel = document.getElementById('previewLevel');
+        const previewClanName = document.getElementById('previewClanName');
+        const clanRow = document.getElementById('clanRow');
         const uidMessage = document.getElementById('uidMessage');
 
         const telegramLink = document.getElementById('telegramLink');
@@ -507,7 +248,7 @@
         const youtubeLink = document.getElementById('youtubeLink');
         const instagramLink = document.getElementById('instagramLink');
 
-        // 5. AUTH TOGGLE
+        // Toggle Login/Signup
         authToggle.addEventListener('click', () => {
             isLogin = !isLogin;
             if (isLogin) {
@@ -532,7 +273,7 @@
                 step2Content.style.display = 'none';
                 step1.className = 'step active';
                 step2.className = 'step';
-                // Reset verification
+                // Reset UID preview
                 fetchedUidData = null;
                 ffPreviewContainer.style.display = 'none';
                 verifyUidBtn.disabled = true;
@@ -541,7 +282,7 @@
             authMessage.textContent = '';
         });
 
-        // 6. BACK TO STEP 1
+        // Back to Step 1
         backToStep1.addEventListener('click', () => {
             step1Content.style.display = 'block';
             step2Content.style.display = 'none';
@@ -553,11 +294,11 @@
             uidMessage.textContent = '';
         });
 
-        // 7. FORM SUBMIT (Step 1)
+        // Step 1 form submit
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (isLogin) {
-                // LOGIN
+                // Login
                 const email = authEmail.value.trim();
                 const password = authPassword.value;
                 if (!email || !password) {
@@ -572,7 +313,7 @@
                     authMessage.textContent = err.message;
                 }
             } else {
-                // SIGNUP – move to step 2
+                // Signup → move to step 2
                 const name = authName.value.trim();
                 const phone = authPhone.value.trim();
                 const email = authEmail.value.trim();
@@ -598,72 +339,85 @@
             }
         });
 
-        // 8. FETCH UID DATA
+        // Fetch UID Data (using proxy)
         fetchUidBtn.addEventListener('click', async () => {
-    const uid = ffUidInput.value.trim();
-    if (!uid) {
-        uidMessage.textContent = 'Please enter a Free Fire UID.';
-        return;
-    }
+            const uid = ffUidInput.value.trim();
+            if (!uid) {
+                uidMessage.textContent = 'Please enter a Free Fire UID.';
+                return;
+            }
 
-    // Check if UID already exists (keep this part)
-    const { data: existing, error: checkErr } = await supabaseClient
-        .from('users')
-        .select('free_fire_uid')
-        .eq('free_fire_uid', uid)
-        .maybeSingle();
-    if (existing) {
-        uidMessage.textContent = '❌ This UID is already registered with another account.';
-        return;
-    }
+            // Check if UID already exists
+            const { data: existing, error: checkErr } = await supabaseClient
+                .from('users')
+                .select('free_fire_uid')
+                .eq('free_fire_uid', uid)
+                .maybeSingle();
+            if (existing) {
+                uidMessage.textContent = '❌ This UID is already registered with another account.';
+                return;
+            }
 
-    uidMessage.textContent = 'Fetching data...';
-    fetchUidBtn.disabled = true;
+            uidMessage.textContent = 'Fetching data...';
+            fetchUidBtn.disabled = true;
 
-    try {
-        // USE YOUR PROXY INSTEAD OF DIRECT HTTP
-        const response = await fetch(`/api/fetch-ff-data?uid=${uid}`);
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'API request failed');
-        }
-        const data = await response.json();
+            try {
+                // Use the proxy endpoint
+                const response = await fetch(`/api/fetch-ff-data?uid=${uid}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'API request failed');
+                }
+                const data = await response.json();
 
-        // ... rest of your logic (extract clan, captain, show preview, etc.)
-        const clan = data.clanBasicInfo || {};
-        const captain = data.captainBasicInfo || {};
+                // Extract required fields
+                const basic = data.basic_info || {};
+                const clan = data.clan_basic_info || {};
 
-        fetchedUidData = {
-            uid: uid,
-            clanId: clan.clanId || '',
-            clanName: clan.clanName || 'N/A',
-            captainId: captain.accountId || '',
-            captainNickname: captain.nickname || 'N/A',
-            captainLevel: captain.level || 0,
-            captainRegion: captain.region || 'N/A'
-        };
+                const nickname = basic.nickname || 'N/A';
+                const region = basic.region || 'N/A';
+                const level = basic.level || 'N/A';
+                const clanName = clan.clan_name || null;
 
-        previewClanName.textContent = fetchedUidData.clanName;
-        previewClanId.textContent = fetchedUidData.clanId;
-        previewCaptain.textContent = fetchedUidData.captainNickname;
-        previewCaptainLevel.textContent = fetchedUidData.captainLevel;
-        previewRegion.textContent = fetchedUidData.captainRegion;
-        ffPreviewContainer.style.display = 'block';
-        verifyUidBtn.disabled = false;
-        uidMessage.textContent = '✅ Verified successfully. Click "Verify & Create Account" to finish.';
-        uidMessage.style.color = '#4caf50';
+                // Store for account creation
+                fetchedUidData = {
+                    uid: uid,
+                    nickname: nickname,
+                    region: region,
+                    level: level,
+                    clanName: clanName,
+                    clanId: clan.clan_id || ''
+                };
 
-    } catch (err) {
-        uidMessage.textContent = '❌ Error fetching UID: ' + err.message;
-        uidMessage.style.color = '#ff6b6b';
-        ffPreviewContainer.style.display = 'none';
-        verifyUidBtn.disabled = true;
-    } finally {
-        fetchUidBtn.disabled = false;
-    }
-});
+                // Update preview
+                previewNickname.textContent = nickname;
+                previewRegion.textContent = region;
+                previewLevel.textContent = level;
 
-        // 9. VERIFY & CREATE ACCOUNT
+                // Show clan if available
+                if (clanName) {
+                    previewClanName.textContent = clanName;
+                    clanRow.style.display = 'flex';
+                } else {
+                    clanRow.style.display = 'none';
+                }
+
+                ffPreviewContainer.style.display = 'block';
+                verifyUidBtn.disabled = false;
+                uidMessage.textContent = '✅ Verified successfully. Click "Verify & Create Account" to finish.';
+                uidMessage.style.color = '#4caf50';
+
+            } catch (err) {
+                uidMessage.textContent = '❌ Error fetching UID: ' + err.message;
+                uidMessage.style.color = '#ff6b6b';
+                ffPreviewContainer.style.display = 'none';
+                verifyUidBtn.disabled = true;
+            } finally {
+                fetchUidBtn.disabled = false;
+            }
+        });
+
+        // Verify & Create Account
         verifyUidBtn.addEventListener('click', async () => {
             if (!fetchedUidData) {
                 uidMessage.textContent = 'Please fetch UID data first.';
@@ -685,7 +439,7 @@
                 if (authError) throw authError;
                 const userId = authData.user.id;
 
-                // Insert user profile
+                // Insert profile with UID details
                 const profile = {
                     id: userId,
                     email,
@@ -705,10 +459,10 @@
                     free_fire_uid: fetchedUidData.uid,
                     ff_clan_id: fetchedUidData.clanId,
                     ff_clan_name: fetchedUidData.clanName,
-                    ff_captain_id: fetchedUidData.captainId,
-                    ff_captain_nickname: fetchedUidData.captainNickname,
-                    ff_captain_level: fetchedUidData.captainLevel,
-                    ff_captain_region: fetchedUidData.captainRegion,
+                    ff_captain_id: '',
+                    ff_captain_nickname: '',
+                    ff_captain_level: 0,
+                    ff_captain_region: '',
                     ff_verified: true
                 };
 
@@ -746,7 +500,7 @@
             }
         });
 
-        // 10. LOAD SOCIAL LINKS
+        // Load social links
         async function loadSocialLinks() {
             const { data, error } = await supabaseClient.from('settings').select('*').limit(1).single();
             if (error || !data) return;
@@ -756,17 +510,17 @@
             if (data.instagram_link) instagramLink.href = data.instagram_link;
         }
 
-        // 11. AUTH STATE LISTENER – redirect if logged in
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        // Auth state – redirect if already logged in
+        supabaseClient.auth.onAuthStateChange((event, session) => {
             if (session?.user) {
                 window.location.href = '/user';
             }
         });
 
-        // 12. INIT
+        // Init
         loadSocialLinks();
 
-        // 13. FEATURE MODAL FUNCTIONS
+        // Feature modal
         function showDetail(title, desc) {
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalDesc').innerText = desc;
@@ -776,7 +530,7 @@
             document.getElementById('featureModal').style.display = 'none';
         }
 
-        // 14. REVEAL ANIMATIONS
+        // Reveal animations
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
         }, { threshold: 0.1 });
