@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>POPPY ESPORTS – Tournaments</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -26,9 +26,11 @@
         .slots-remaining { background: #2a2a4a; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; }
         .slots-full { color: #ff4444; }
         .ff-verified-badge { background: #1a1a2e; padding: 8px 16px; border-radius: 20px; border-left: 3px solid #00ff88; display: inline-block; margin-bottom: 10px; }
+        .loading { text-align: center; padding: 40px; color: #888; }
     </style>
 </head>
 <body>
+
     <div class="header">
         <div>
             <img src="POPPY_ESPORTS.png" alt="Logo" style="height: 40px; border-radius: 50%;">
@@ -40,7 +42,7 @@
         </div>
     </div>
 
-    <!-- Verified UID & Clan Info -->
+    <!-- Verified UID & Clan -->
     <div class="ff-verified-badge" id="ffBadge">
         <i class="bi bi-check-circle-fill" style="color: #00ff88;"></i>
         Verified UID: <strong id="ffUidDisplay">----</strong> | Clan: <span id="ffClanDisplay">----</span>
@@ -53,22 +55,29 @@
     </div>
 
     <h2 class="section-title">🔥 Latest Incoming Tournaments</h2>
-    <div id="tournamentsContainer"></div>
+    <div id="tournamentsContainer">
+        <div class="loading">Loading tournaments...</div>
+    </div>
 
     <!-- ======== SCRIPTS ======== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // USER APP – Full tournament listing with slots & join logic
+        // POPPY ESPORTS – User Dashboard (Fixed supabaseClient)
         // ================================================================
 
-        const SUPABASE_URL = 'https://your-project.supabase.co';
-        const SUPABASE_ANON_KEY = 'your-anon-key';
+        // 1. CONFIG
+        const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96ZnJobWJ0Z2pxdWFneGJpbmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU2Mjg1NTQsImV4cCI6MjEwMTIwNDU1NH0.aUvqIJ4vyiWfgR96dscEFNL1xyoHeCtOUlZCRqN_YiI';
+
+        // 2. INIT SUPABASE – use unique name
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // 3. STATE
         let currentUser = null;
         let userProfile = null;
 
+        // 4. DOM REFS
         const userNameDisplay = document.getElementById('userNameDisplay');
         const userBalance = document.getElementById('userBalance');
         const referralCodeDisplay = document.getElementById('referralCodeDisplay');
@@ -76,23 +85,27 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const ffUidDisplay = document.getElementById('ffUidDisplay');
         const ffClanDisplay = document.getElementById('ffClanDisplay');
+        const ffBadge = document.getElementById('ffBadge');
 
-        supabase.auth.onAuthStateChange(async (event, session) => {
+        // 5. AUTH STATE LISTENER
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
             const user = session?.user || null;
             if (user) {
                 currentUser = user;
-                const { data: profile, error } = await supabase
+                // Fetch profile
+                const { data: profile, error } = await supabaseClient
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
                     .single();
                 if (error) {
                     alert('Error loading profile. Please login again.');
-                    supabase.auth.signOut();
+                    supabaseClient.auth.signOut();
                     window.location.href = '/';
                     return;
                 }
                 userProfile = profile;
+                // Update UI
                 userNameDisplay.textContent = profile.display_name || user.email;
                 userBalance.textContent = '₹' + (profile.balance || 0);
                 referralCodeDisplay.textContent = profile.referral_code || 'N/A';
@@ -101,16 +114,19 @@
                     ffUidDisplay.textContent = profile.free_fire_uid;
                     ffClanDisplay.textContent = profile.ff_clan_name || 'N/A';
                 } else {
-                    document.getElementById('ffBadge').style.display = 'none';
+                    ffBadge.style.display = 'none';
                 }
+                // Load tournaments
                 loadUpcomingTournaments();
             } else {
+                // Not logged in – redirect to landing
                 window.location.href = '/';
             }
         });
 
+        // 6. LOAD TOURNAMENTS
         async function loadUpcomingTournaments() {
-            const { data: tournaments, error } = await supabase
+            const { data: tournaments, error } = await supabaseClient
                 .from('tournaments')
                 .select('*, games(name, image_url)')
                 .eq('status', 'upcoming')
@@ -159,14 +175,15 @@
                             <span><i class="bi bi-currency-rupee"></i> Entry: ₹${entryFee}</span>
                             <span><i class="bi bi-controller"></i> ${t.mode || 'Solo'}</span>
                         </div>
-                        ${isJoined ? '<span style="color: #00ff88;">✔ Joined</span>' : 
-                          (isFull ? '<span style="color: #ff4444;">FULL</span>' : 
+                        ${isJoined ? '<span style="color: #00ff88;">✔ Joined</span>' :
+                          (isFull ? '<span style="color: #ff4444;">FULL</span>' :
                           `<button class="btn-join" data-id="${t.id}" data-fee="${entryFee}">Join Tournament</button>`)}
                     </div>
                 `;
             }
             tournamentsContainer.innerHTML = html;
 
+            // Attach join handlers
             document.querySelectorAll('.btn-join').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = btn.dataset.id;
@@ -176,6 +193,7 @@
             });
         }
 
+        // 7. JOIN TOURNAMENT
         async function joinTournament(tournamentId, fee) {
             if (!currentUser) return;
             if ((userProfile.balance || 0) < fee) {
@@ -183,7 +201,8 @@
                 return;
             }
 
-            const { data: t, error: tError } = await supabase
+            // Check slots
+            const { data: t, error: tError } = await supabaseClient
                 .from('tournaments')
                 .select('max_players, registered_players')
                 .eq('id', tournamentId)
@@ -203,13 +222,13 @@
                 const newBalance = userProfile.balance - fee;
                 const joined = { ...(userProfile.joined_tournaments || {}), [tournamentId]: true };
 
-                const { error: updateUserErr } = await supabase
+                const { error: updateUserErr } = await supabaseClient
                     .from('users')
                     .update({ balance: newBalance, joined_tournaments: joined })
                     .eq('id', currentUser.id);
                 if (updateUserErr) throw updateUserErr;
 
-                const { error: regErr } = await supabase
+                const { error: regErr } = await supabaseClient
                     .from('registered_players')
                     .insert([{
                         tournament_id: tournamentId,
@@ -220,7 +239,7 @@
                     }]);
                 if (regErr) throw regErr;
 
-                await supabase.from('transactions').insert([{
+                await supabaseClient.from('transactions').insert([{
                     user_id: currentUser.id,
                     type: 'tournament_join',
                     amount: -fee,
@@ -240,8 +259,9 @@
             }
         }
 
+        // 8. LOGOUT
         logoutBtn.addEventListener('click', () => {
-            supabase.auth.signOut();
+            supabaseClient.auth.signOut();
             window.location.href = '/';
         });
     </script>
