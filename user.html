@@ -18,7 +18,8 @@
         .btn-join:hover:not(:disabled) { transform: scale(1.05); }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; flex-wrap: wrap; }
         .user-info { color: #aaa; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .logout-btn { background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 5px 15px; border-radius: 20px; cursor: pointer; }
+        .logout-btn { background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 5px 15px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .logout-btn:hover { background: #ff4444; color: #fff; }
         .section-title { color: #fff; margin-bottom: 20px; }
         .no-tournaments { color: #666; text-align: center; padding: 40px; }
         .referral-banner { background: #1a1a2e; padding: 15px; border-radius: 12px; border-left: 4px solid #00ff88; margin-bottom: 20px; }
@@ -63,21 +64,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ================================================================
-        // POPPY ESPORTS – User Dashboard (Fixed supabaseClient)
+        // POPPY ESPORTS – User Dashboard
         // ================================================================
 
-        // 1. CONFIG
         const SUPABASE_URL = 'https://ozfrhmbtgjquagxbinjv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96ZnJobWJ0Z2pxdWFneGJpbmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU2Mjg1NTQsImV4cCI6MjEwMTIwNDU1NH0.aUvqIJ4vyiWfgR96dscEFNL1xyoHeCtOUlZCRqN_YiI';
 
-        // 2. INIT SUPABASE – use unique name
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 3. STATE
         let currentUser = null;
         let userProfile = null;
 
-        // 4. DOM REFS
+        // DOM refs
         const userNameDisplay = document.getElementById('userNameDisplay');
         const userBalance = document.getElementById('userBalance');
         const referralCodeDisplay = document.getElementById('referralCodeDisplay');
@@ -87,12 +85,11 @@
         const ffClanDisplay = document.getElementById('ffClanDisplay');
         const ffBadge = document.getElementById('ffBadge');
 
-        // 5. AUTH STATE LISTENER
+        // Auth state
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             const user = session?.user || null;
             if (user) {
                 currentUser = user;
-                // Fetch profile
                 const { data: profile, error } = await supabaseClient
                     .from('users')
                     .select('*')
@@ -105,26 +102,22 @@
                     return;
                 }
                 userProfile = profile;
-                // Update UI
                 userNameDisplay.textContent = profile.display_name || user.email;
                 userBalance.textContent = '₹' + (profile.balance || 0);
                 referralCodeDisplay.textContent = profile.referral_code || 'N/A';
-                // UID & Clan
                 if (profile.free_fire_uid) {
                     ffUidDisplay.textContent = profile.free_fire_uid;
                     ffClanDisplay.textContent = profile.ff_clan_name || 'N/A';
                 } else {
                     ffBadge.style.display = 'none';
                 }
-                // Load tournaments
                 loadUpcomingTournaments();
             } else {
-                // Not logged in – redirect to landing
                 window.location.href = '/';
             }
         });
 
-        // 6. LOAD TOURNAMENTS
+        // Load tournaments
         async function loadUpcomingTournaments() {
             const { data: tournaments, error } = await supabaseClient
                 .from('tournaments')
@@ -183,7 +176,6 @@
             }
             tournamentsContainer.innerHTML = html;
 
-            // Attach join handlers
             document.querySelectorAll('.btn-join').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = btn.dataset.id;
@@ -193,7 +185,7 @@
             });
         }
 
-        // 7. JOIN TOURNAMENT
+        // Join tournament
         async function joinTournament(tournamentId, fee) {
             if (!currentUser) return;
             if ((userProfile.balance || 0) < fee) {
@@ -201,7 +193,6 @@
                 return;
             }
 
-            // Check slots
             const { data: t, error: tError } = await supabaseClient
                 .from('tournaments')
                 .select('max_players, registered_players')
@@ -259,10 +250,24 @@
             }
         }
 
-        // 8. LOGOUT
-        logoutBtn.addEventListener('click', () => {
-            supabaseClient.auth.signOut();
-            window.location.href = '/';
+        // ============ FIXED LOGOUT ============
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                // Disable the button to prevent double-click
+                logoutBtn.disabled = true;
+                logoutBtn.textContent = 'Logging out...';
+                
+                // Wait for sign-out to complete
+                await supabaseClient.auth.signOut();
+                
+                // Now redirect to home (root)
+                window.location.href = '/';
+            } catch (err) {
+                console.error('Logout error:', err);
+                alert('Failed to logout. Please try again.');
+                logoutBtn.disabled = false;
+                logoutBtn.textContent = 'Logout';
+            }
         });
     </script>
 </body>
